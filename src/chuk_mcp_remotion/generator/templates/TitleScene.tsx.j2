@@ -1,0 +1,163 @@
+import React from 'react';
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+
+interface TitleSceneProps {
+  text: string;
+  subtitle?: string;
+}
+
+export const TitleScene: React.FC<TitleSceneProps> = ({ text, subtitle }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  // Animation based on variant
+  [% if config.animation == 'fade_zoom' %]
+  // Fade + Zoom animation
+  const progress = spring({
+    frame,
+    fps,
+    config: {
+      damping: [[ motion.default_spring.config.damping ]],
+      mass: [[ motion.default_spring.config.mass ]],
+      stiffness: [[ motion.default_spring.config.stiffness ]]
+    }
+  });
+
+  const opacity = interpolate(progress, [0, 1], [0, 1]);
+  const scale = interpolate(progress, [0, 1], [0.8, 1]);
+  const transform = `scale(${scale})`;
+
+  [% elif config.animation == 'slide_up' %]
+  // Slide up animation
+  const progress = spring({
+    frame,
+    fps,
+    config: {
+      damping: 200,
+      mass: 0.5,
+      stiffness: 200
+    }
+  });
+
+  const opacity = interpolate(progress, [0, 1], [0, 1]);
+  const translateY = interpolate(progress, [0, 1], [100, 0]);
+  const transform = `translateY(${translateY}px)`;
+
+  [% elif config.animation == 'typewriter' %]
+  // Typewriter animation
+  const charsToShow = Math.floor(interpolate(frame, [0, 60], [0, text.length], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
+  }));
+  const displayText = text.slice(0, charsToShow);
+  const opacity = 1;
+  const transform = 'none';
+
+  [% elif config.animation == 'blur_in' %]
+  // Blur to focus animation
+  const progress = spring({
+    frame,
+    fps,
+    config: { damping: 150, mass: 0.5, stiffness: 150 }
+  });
+
+  const opacity = interpolate(progress, [0, 1], [0, 1]);
+  const blur = interpolate(progress, [0, 1], [20, 0]);
+  const transform = 'none';
+  const filter = `blur(${blur}px)`;
+
+  [% else %]
+  // Default: fade in
+  const opacity = interpolate(frame, [0, 20], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
+  });
+  const transform = 'none';
+  [% endif %]
+
+  // Variant styles
+  const variants = {
+    minimal: {
+      background: '[[ colors.background.light ]]',
+      textColor: '[[ colors.text.on_light ]]',
+      accentColor: '[[ colors.primary[0] ]]'
+    },
+    standard: {
+      background: `linear-gradient(135deg, [[ colors.background.dark ]] 0%, [[ colors.primary[2] ]] 100%)`,
+      textColor: '[[ colors.text.on_dark ]]',
+      accentColor: '[[ colors.accent[0] ]]'
+    },
+    bold: {
+      background: `[[ colors.gradient ]]`,
+      textColor: '[[ colors.text.on_dark ]]',
+      accentColor: '#FFFFFF'
+    },
+    kinetic: {
+      background: '[[ colors.background.dark ]]',
+      textColor: '[[ colors.text.on_dark ]]',
+      accentColor: '[[ colors.accent[0] ]]'
+    }
+  };
+
+  const variantStyle = variants['[[ config.variant ]]'] || variants.bold;
+
+  return (
+    <AbsoluteFill
+      style={{
+        background: variantStyle.background,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: "'[[ "', '".join(typography.primary_font.fonts) ]]'",
+        padding: 80
+      }}
+    >
+      <div
+        style={{
+          opacity,
+          transform,
+          [% if config.animation == 'blur_in' %]
+          filter: filter,
+          [% endif %]
+          textAlign: 'center'
+        }}
+      >
+        <h1
+          style={{
+            fontSize: [% if config.variant == 'bold' %]120[% else %]96[% endif %],
+            fontWeight: [% if config.variant == 'kinetic' %]900[% else %]700[% endif %],
+            color: variantStyle.textColor,
+            margin: 0,
+            lineHeight: 1.1,
+            letterSpacing: '-0.02em',
+            [% if config.variant == 'kinetic' %]
+            textTransform: 'uppercase',
+            [% endif %]
+            maxWidth: 1200
+          }}
+        >
+          [% if config.animation == 'typewriter' %]
+          {displayText}
+          [% else %]
+          [[ config.text ]]
+          [% endif %]
+        </h1>
+        [% if config.subtitle %]
+        <p
+          style={{
+            fontSize: 48,
+            fontWeight: 500,
+            color: variantStyle.accentColor,
+            margin: '32px 0 0 0',
+            lineHeight: 1.3,
+            maxWidth: 900
+          }}
+        >
+          [[ config.subtitle ]]
+        </p>
+        [% endif %]
+      </div>
+    </AbsoluteFill>
+  );
+};

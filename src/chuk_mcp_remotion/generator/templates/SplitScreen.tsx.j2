@@ -1,0 +1,106 @@
+import React from 'react';
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
+
+interface SplitScreenProps {
+  left?: React.ReactNode;
+  right?: React.ReactNode;
+  top?: React.ReactNode;
+  bottom?: React.ReactNode;
+  startFrame: number;
+  durationInFrames: number;
+}
+
+export const SplitScreen: React.FC<SplitScreenProps> = ({
+  left,
+  right,
+  top,
+  bottom,
+  startFrame,
+  durationInFrames
+}) => {
+  const frame = useCurrentFrame();
+  const relativeFrame = frame - startFrame;
+
+  // Don't render if outside the time range
+  if (frame < startFrame || frame >= startFrame + durationInFrames) {
+    return null;
+  }
+
+  // Determine split direction and ratio
+  const direction = '[[ config.direction or "horizontal" ]]';
+  const ratio = [[ config.ratio or 0.5 ]];  // 0.5 = 50/50 split
+
+  // Calculate sizes based on ratio
+  const leftPercent = ratio * 100;
+  const rightPercent = (1 - ratio) * 100;
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          [% if config.padding %]
+          top: [[ config.padding ]],
+          left: [[ config.padding ]],
+          right: [[ config.padding ]],
+          bottom: [[ config.padding ]],
+          [% else %]
+          top: 40,
+          left: 40,
+          right: 40,
+          bottom: 40,
+          [% endif %]
+          display: 'flex',
+          flexDirection: direction === 'horizontal' ? 'row' : 'column',
+          gap: [[ config.gap or 20 ]],
+        }}
+      >
+        {/* First panel */}
+        <div
+          style={{
+            width: direction === 'horizontal' ? `${leftPercent}%` : '100%',
+            height: direction === 'vertical' ? `${leftPercent}%` : '100%',
+            display: 'flex',
+            [% if config.align_items %]
+            alignItems: '[[ config.align_items ]]',
+            [% endif %]
+            [% if config.justify_content %]
+            justifyContent: '[[ config.justify_content ]]',
+            [% endif %]
+          }}
+        >
+          {direction === 'horizontal' ? (left || null) : (top || null)}
+        </div>
+
+        {/* Divider line (optional) */}
+        [% if config.show_divider %]
+        <div
+          style={{
+            width: direction === 'horizontal' ? 2 : '100%',
+            height: direction === 'vertical' ? 2 : '100%',
+            background: '[[ config.divider_color or colors.text.muted ]]',
+            opacity: [[ config.divider_opacity or 0.3 ]],
+          }}
+        />
+        [% endif %]
+
+        {/* Second panel */}
+        <div
+          style={{
+            width: direction === 'horizontal' ? `${rightPercent}%` : '100%',
+            height: direction === 'vertical' ? `${rightPercent}%` : '100%',
+            display: 'flex',
+            [% if config.align_items %]
+            alignItems: '[[ config.align_items ]]',
+            [% endif %]
+            [% if config.justify_content %]
+            justifyContent: '[[ config.justify_content ]]',
+            [% endif %]
+          }}
+        >
+          {direction === 'horizontal' ? (right || null) : (bottom || null)}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};

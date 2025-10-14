@@ -1,0 +1,8 @@
+node_modules/
+dist/
+out/
+.remotion/
+*.mp4
+*.webm
+*.mov
+.DS_Store

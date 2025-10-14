@@ -1,0 +1,765 @@
+"""
+Composition Builder - Combines components into complete video compositions.
+
+Manages the timeline, layering, and sequencing of video components.
+"""
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, field
+from pathlib import Path
+
+
+@dataclass
+class ComponentInstance:
+    """Represents an instance of a component in the timeline."""
+    component_type: str  # TitleScene, LowerThird, etc.
+    start_frame: int
+    duration_frames: int
+    props: Dict[str, Any] = field(default_factory=dict)
+    layer: int = 0  # Higher layers render on top
+
+
+class CompositionBuilder:
+    """Builds complete video compositions from components."""
+
+    def __init__(self, fps: int = 30, width: int = 1920, height: int = 1080, transparent: bool = False):
+        """
+        Initialize composition builder.
+
+        Args:
+            fps: Frames per second (default: 30)
+            width: Video width in pixels (default: 1920)
+            height: Video height in pixels (default: 1080)
+            transparent: Use transparent background (default: False)
+        """
+        self.fps = fps
+        self.width = width
+        self.height = height
+        self.components: List[ComponentInstance] = []
+        self.theme = "tech"
+        self.transparent = transparent
+
+    def seconds_to_frames(self, seconds: float) -> int:
+        """Convert seconds to frames."""
+        return int(seconds * self.fps)
+
+    def frames_to_seconds(self, frames: int) -> float:
+        """Convert frames to seconds."""
+        return frames / self.fps
+
+    def create_code_block_instance(
+        self,
+        code: str,
+        language: str = "javascript",
+        title: Optional[str] = None,
+        start_frame: int = 0,
+        duration_frames: int = 150,
+        variant: str = "editor",
+        animation: str = "fade_in",
+        show_line_numbers: bool = True
+    ) -> ComponentInstance:
+        """
+        Create a CodeBlock instance without adding it to the composition.
+        Useful for creating children for layout components.
+        """
+        return ComponentInstance(
+            component_type="CodeBlock",
+            start_frame=start_frame,
+            duration_frames=duration_frames,
+            props={
+                "code": code,
+                "language": language,
+                "title": title,
+                "variant": variant,
+                "animation": animation,
+                "show_line_numbers": show_line_numbers
+            },
+            layer=5
+        )
+
+    def add_title_scene(
+        self,
+        text: str,
+        subtitle: Optional[str] = None,
+        duration_seconds: float = 3.0,
+        variant: str = "bold",
+        animation: str = "fade_zoom"
+    ) -> 'CompositionBuilder':
+        """
+        Add a title scene to the composition.
+
+        Args:
+            text: Main title text
+            subtitle: Optional subtitle
+            duration_seconds: Duration in seconds
+            variant: Style variant
+            animation: Animation style
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="TitleScene",
+            start_frame=self._get_next_start_frame(),
+            duration_frames=self.seconds_to_frames(duration_seconds),
+            props={
+                "text": text,
+                "subtitle": subtitle,
+                "variant": variant,
+                "animation": animation
+            },
+            layer=0
+        )
+        self.components.append(component)
+        return self
+
+    def add_line_chart(
+        self,
+        data: list,
+        title: Optional[str] = None,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        start_time: float = 0.0,
+        duration: float = 4.0
+    ) -> 'CompositionBuilder':
+        """
+        Add an animated line chart to the composition.
+
+        Args:
+            data: List of [x, y] data points
+            title: Optional chart title
+            xlabel: Optional x-axis label
+            ylabel: Optional y-axis label
+            start_time: When to show (seconds)
+            duration: How long to animate (seconds)
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="LineChart",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "data": data,
+                "title": title,
+                "xlabel": xlabel,
+                "ylabel": ylabel
+            },
+            layer=5  # Charts render above main content but below overlays
+        )
+        self.components.append(component)
+        return self
+
+    def add_lower_third(
+        self,
+        name: str,
+        title: Optional[str] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        variant: str = "glass",
+        position: str = "bottom_left"
+    ) -> 'CompositionBuilder':
+        """
+        Add a lower third overlay to the composition.
+
+        Args:
+            name: Main name/text
+            title: Optional subtitle
+            start_time: When to show (seconds)
+            duration: How long to show (seconds)
+            variant: Style variant
+            position: Screen position
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="LowerThird",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "name": name,
+                "title": title,
+                "variant": variant,
+                "position": position
+            },
+            layer=10  # Overlays render on top
+        )
+        self.components.append(component)
+        return self
+
+    def add_code_block(
+        self,
+        code: str,
+        language: str = "javascript",
+        title: Optional[str] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        variant: str = "editor",
+        animation: str = "fade_in",
+        show_line_numbers: bool = True
+    ) -> 'CompositionBuilder':
+        """
+        Add a static code block to the composition.
+
+        Args:
+            code: Code content to display
+            language: Programming language
+            title: Optional title/filename
+            start_time: When to show (seconds)
+            duration: How long to show (seconds)
+            variant: Style variant (minimal, terminal, editor, glass)
+            animation: Entrance animation
+            show_line_numbers: Show line numbers
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="CodeBlock",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "code": code,
+                "language": language,
+                "title": title,
+                "variant": variant,
+                "animation": animation,
+                "show_line_numbers": show_line_numbers
+            },
+            layer=5  # Code blocks render with charts
+        )
+        self.components.append(component)
+        return self
+
+    def add_typing_code(
+        self,
+        code: str,
+        language: str = "javascript",
+        title: Optional[str] = None,
+        start_time: float = 0.0,
+        duration: float = 10.0,
+        variant: str = "editor",
+        cursor_style: str = "line",
+        typing_speed: str = "normal",
+        show_line_numbers: bool = True
+    ) -> 'CompositionBuilder':
+        """
+        Add an animated typing code effect to the composition.
+
+        Args:
+            code: Code to type out
+            language: Programming language
+            title: Optional title/filename
+            start_time: When to start (seconds)
+            duration: How long to type (seconds)
+            variant: Style variant (minimal, terminal, editor, hacker)
+            cursor_style: Cursor appearance (block, line, underline, none)
+            typing_speed: Typing speed (slow, normal, fast, instant)
+            show_line_numbers: Show line numbers
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="TypingCode",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "code": code,
+                "language": language,
+                "title": title,
+                "variant": variant,
+                "cursor_style": cursor_style,
+                "typing_speed": typing_speed,
+                "show_line_numbers": show_line_numbers
+            },
+            layer=5  # Code blocks render with charts
+        )
+        self.components.append(component)
+        return self
+
+    def add_container(
+        self,
+        child_component: ComponentInstance,
+        position: str = "center",
+        width: str = "auto",
+        height: str = "auto",
+        max_width: Optional[str] = None,
+        max_height: Optional[str] = None,
+        padding: int = 40
+    ) -> 'CompositionBuilder':
+        """
+        Add a container layout that positions a child component.
+
+        Args:
+            child_component: The component to position
+            position: Position on screen (center, top-left, top-right, etc.)
+            width: Container width
+            height: Container height
+            max_width: Maximum width constraint
+            max_height: Maximum height constraint
+            padding: Padding from edges
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="Container",
+            start_frame=child_component.start_frame,
+            duration_frames=child_component.duration_frames,
+            props={
+                "position": position,
+                "width": width,
+                "height": height,
+                "max_width": max_width,
+                "max_height": max_height,
+                "padding": padding,
+                "children": child_component  # Store child component
+            },
+            layer=child_component.layer
+        )
+        self.components.append(component)
+        return self
+
+    def add_grid(
+        self,
+        child_components: List[ComponentInstance],
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        layout: str = "3x3",
+        gap: int = 20,
+        padding: int = 40,
+        align_items: Optional[str] = None,
+        justify_items: Optional[str] = None
+    ) -> 'CompositionBuilder':
+        """
+        Add a grid layout that arranges multiple components.
+
+        Args:
+            child_components: List of components to arrange in grid
+            start_time: When to show (seconds)
+            duration: How long to show (seconds)
+            layout: Grid layout (1x2, 2x1, 2x2, 3x2, 2x3, 3x3, 4x2, 2x4)
+            gap: Gap between grid items
+            padding: Padding from edges
+            align_items: CSS align-items value
+            justify_items: CSS justify-items value
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="Grid",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "layout": layout,
+                "gap": gap,
+                "padding": padding,
+                "align_items": align_items,
+                "justify_items": justify_items,
+                "children": child_components  # Store child components
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_split_screen(
+        self,
+        left_component: Optional[ComponentInstance] = None,
+        right_component: Optional[ComponentInstance] = None,
+        top_component: Optional[ComponentInstance] = None,
+        bottom_component: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        direction: str = "horizontal",
+        ratio: float = 0.5,
+        gap: int = 20,
+        padding: int = 40,
+        show_divider: bool = False,
+        divider_color: Optional[str] = None,
+        divider_opacity: float = 0.3,
+        align_items: Optional[str] = None,
+        justify_content: Optional[str] = None
+    ) -> 'CompositionBuilder':
+        """
+        Add a split screen layout with two panels.
+
+        Args:
+            left_component: Component for left panel (horizontal split)
+            right_component: Component for right panel (horizontal split)
+            top_component: Component for top panel (vertical split)
+            bottom_component: Component for bottom panel (vertical split)
+            start_time: When to show (seconds)
+            duration: How long to show (seconds)
+            direction: Split direction (horizontal or vertical)
+            ratio: Split ratio (0.5 = 50/50, 0.6 = 60/40, etc.)
+            gap: Gap between panels
+            padding: Padding from edges
+            show_divider: Show divider line between panels
+            divider_color: Divider line color
+            divider_opacity: Divider line opacity
+            align_items: CSS align-items value
+            justify_content: CSS justify-content value
+
+        Returns:
+            Self for chaining
+        """
+        component = ComponentInstance(
+            component_type="SplitScreen",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "direction": direction,
+                "ratio": ratio,
+                "gap": gap,
+                "padding": padding,
+                "show_divider": show_divider,
+                "divider_color": divider_color,
+                "divider_opacity": divider_opacity,
+                "align_items": align_items,
+                "justify_content": justify_content,
+                "left": left_component,
+                "right": right_component,
+                "top": top_component,
+                "bottom": bottom_component
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def _get_next_start_frame(self) -> int:
+        """Get the start frame for the next sequential component."""
+        if not self.components:
+            return 0
+
+        # Find the last component on layer 0 (main content)
+        layer_0_components = [c for c in self.components if c.layer == 0]
+        if not layer_0_components:
+            return 0
+
+        last = max(layer_0_components, key=lambda c: c.start_frame + c.duration_frames)
+        return last.start_frame + last.duration_frames
+
+    def get_total_duration_frames(self) -> int:
+        """Get total duration of the composition in frames."""
+        if not self.components:
+            return 0
+        return max(c.start_frame + c.duration_frames for c in self.components)
+
+    def get_total_duration_seconds(self) -> float:
+        """Get total duration of the composition in seconds."""
+        return self.frames_to_seconds(self.get_total_duration_frames())
+
+    def generate_composition_tsx(self) -> str:
+        """
+        Generate the main VideoComposition.tsx component.
+
+        Returns:
+            TSX code for the complete composition
+        """
+        # Sort components by layer (lower layers first)
+        sorted_components = sorted(self.components, key=lambda c: c.layer)
+
+        # Find all nested children to exclude from top-level rendering
+        nested_children = self._find_nested_children(sorted_components)
+
+        # Generate import statements (recursively find all component types)
+        unique_types = self._find_all_component_types(sorted_components)
+        imports = "\n".join([
+            f"import {{ {comp_type} }} from './components/{comp_type}';"
+            for comp_type in sorted(unique_types)
+        ])
+
+        # Generate component JSX (only top-level components)
+        components_jsx = []
+        for comp in sorted_components:
+            # Skip if this component is a child of another component
+            if id(comp) in nested_children:
+                continue
+
+            jsx = self._render_component_jsx(comp, indent=6)
+            components_jsx.append(jsx)
+
+        components_jsx_str = "\n".join(components_jsx)
+
+        # Background color: transparent or black
+        background_color = 'transparent' if self.transparent else '#000'
+
+        # Generate complete composition
+        tsx = f"""import React from 'react';
+import {{ AbsoluteFill }} from 'remotion';
+{imports}
+
+interface VideoCompositionProps {{
+  theme: string;
+}}
+
+export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) => {{
+  return (
+    <AbsoluteFill style={{{{ backgroundColor: '{background_color}' }}}}>
+{components_jsx_str}
+    </AbsoluteFill>
+  );
+}};
+"""
+        return tsx
+
+    def _find_all_component_types(self, components: List[ComponentInstance]) -> set:
+        """Recursively find all component types including nested children."""
+        types = set()
+
+        def collect_types(comp):
+            types.add(comp.component_type)
+
+            # Check for nested children
+            if comp.component_type in ['Grid', 'Container', 'SplitScreen']:
+                children = comp.props.get('children')
+                if isinstance(children, list):
+                    for child in children:
+                        if isinstance(child, ComponentInstance):
+                            collect_types(child)
+                elif isinstance(children, ComponentInstance):
+                    collect_types(children)
+
+                # For SplitScreen
+                for key in ['left', 'right', 'top', 'bottom']:
+                    child = comp.props.get(key)
+                    if isinstance(child, ComponentInstance):
+                        collect_types(child)
+
+        for comp in components:
+            collect_types(comp)
+
+        return types
+
+    def _find_nested_children(self, components: List[ComponentInstance]) -> set:
+        """Find all components that are children of layout components."""
+        nested = set()
+        for comp in components:
+            if comp.component_type in ['Grid', 'Container', 'SplitScreen']:
+                # Get children from props
+                children = comp.props.get('children')
+                if isinstance(children, list):
+                    for child in children:
+                        if isinstance(child, ComponentInstance):
+                            nested.add(id(child))
+                elif isinstance(children, ComponentInstance):
+                    nested.add(id(children))
+
+                # For SplitScreen, check left/right/top/bottom
+                for key in ['left', 'right', 'top', 'bottom']:
+                    child = comp.props.get(key)
+                    if isinstance(child, ComponentInstance):
+                        nested.add(id(child))
+        return nested
+
+    def _render_component_jsx(self, comp: ComponentInstance, indent: int = 0) -> str:
+        """Render a component as JSX, including nested children."""
+        spaces = ' ' * indent
+
+        # Check if this is a layout component with children
+        has_children = comp.component_type in ['Grid', 'Container', 'SplitScreen']
+
+        if has_children:
+            return self._render_layout_component(comp, indent)
+        else:
+            return self._render_simple_component(comp, indent)
+
+    def _render_simple_component(self, comp: ComponentInstance, indent: int) -> str:
+        """Render a simple component without children."""
+        spaces = ' ' * indent
+
+        # Format props (exclude children-related props)
+        props_lines = []
+        for key, value in comp.props.items():
+            if key not in ['children', 'left', 'right', 'top', 'bottom'] and value is not None:
+                props_lines.append(f"{spaces}  {key}={self._format_prop_value(value)}")
+        props_str = "\n".join(props_lines) if props_lines else ""
+
+        if props_str:
+            return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{props_str}
+{spaces}/>"""
+        else:
+            return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{spaces}/>"""
+
+    def _render_layout_component(self, comp: ComponentInstance, indent: int) -> str:
+        """Render a layout component with nested children."""
+        spaces = ' ' * indent
+
+        # Format non-children props
+        props_lines = []
+        for key, value in comp.props.items():
+            if key not in ['children', 'left', 'right', 'top', 'bottom'] and value is not None:
+                props_lines.append(f"{spaces}  {key}={self._format_prop_value(value)}")
+        props_str = "\n".join(props_lines) if props_lines else ""
+
+        # Render children based on component type
+        if comp.component_type == 'Grid':
+            children = comp.props.get('children', [])
+            if isinstance(children, list):
+                children_jsx = []
+                for child in children:
+                    if isinstance(child, ComponentInstance):
+                        child_jsx = self._render_component_jsx(child, indent + 4)
+                        children_jsx.append(child_jsx)
+                # Join with commas for JSX array
+                children_str = ",\n".join(children_jsx)
+            else:
+                children_str = ""
+
+            if props_str:
+                return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{props_str}
+{spaces}>
+{spaces}  {{[
+{children_str}
+{spaces}  ]}}
+{spaces}</{comp.component_type}>"""
+            else:
+                return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{spaces}>
+{spaces}  {{[
+{children_str}
+{spaces}  ]}}
+{spaces}</{comp.component_type}>"""
+
+        elif comp.component_type == 'Container':
+            child = comp.props.get('children')
+            if isinstance(child, ComponentInstance):
+                child_jsx = self._render_component_jsx(child, indent + 4)
+            else:
+                child_jsx = ""
+
+            if props_str:
+                return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{props_str}
+{spaces}>
+{child_jsx}
+{spaces}</{comp.component_type}>"""
+            else:
+                return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{spaces}>
+{child_jsx}
+{spaces}</{comp.component_type}>"""
+
+        elif comp.component_type == 'SplitScreen':
+            # Render left/right or top/bottom based on direction
+            direction = comp.props.get('direction', 'horizontal')
+            if direction == 'horizontal':
+                left = comp.props.get('left')
+                right = comp.props.get('right')
+                left_jsx = self._render_component_jsx(left, indent + 4) if isinstance(left, ComponentInstance) else ""
+                right_jsx = self._render_component_jsx(right, indent + 4) if isinstance(right, ComponentInstance) else ""
+
+                if props_str:
+                    return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{props_str}
+{spaces}  left={{
+{left_jsx}
+{spaces}  }}
+{spaces}  right={{
+{right_jsx}
+{spaces}  }}
+{spaces}/>"""
+                else:
+                    return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{spaces}  left={{
+{left_jsx}
+{spaces}  }}
+{spaces}  right={{
+{right_jsx}
+{spaces}  }}
+{spaces}/>"""
+            else:  # vertical
+                top = comp.props.get('top')
+                bottom = comp.props.get('bottom')
+                top_jsx = self._render_component_jsx(top, indent + 4) if isinstance(top, ComponentInstance) else ""
+                bottom_jsx = self._render_component_jsx(bottom, indent + 4) if isinstance(bottom, ComponentInstance) else ""
+
+                if props_str:
+                    return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{props_str}
+{spaces}  top={{
+{top_jsx}
+{spaces}  }}
+{spaces}  bottom={{
+{bottom_jsx}
+{spaces}  }}
+{spaces}/>"""
+                else:
+                    return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{spaces}  top={{
+{top_jsx}
+{spaces}  }}
+{spaces}  bottom={{
+{bottom_jsx}
+{spaces}  }}
+{spaces}/>"""
+
+        # Fallback
+        return self._render_simple_component(comp, indent)
+
+    def _format_prop_value(self, value: Any) -> str:
+        """Format a prop value for JSX."""
+        if isinstance(value, str):
+            return f'"{value}"'
+        elif isinstance(value, bool):
+            return "{" + str(value).lower() + "}"
+        elif isinstance(value, (int, float)):
+            return "{" + str(value) + "}"
+        else:
+            return f'{{{value}}}'
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Export composition as dictionary.
+
+        Returns:
+            Dictionary representation of the composition
+        """
+        return {
+            "fps": self.fps,
+            "width": self.width,
+            "height": self.height,
+            "theme": self.theme,
+            "duration_frames": self.get_total_duration_frames(),
+            "duration_seconds": self.get_total_duration_seconds(),
+            "components": [
+                {
+                    "type": c.component_type,
+                    "start_frame": c.start_frame,
+                    "duration_frames": c.duration_frames,
+                    "start_time": self.frames_to_seconds(c.start_frame),
+                    "duration": self.frames_to_seconds(c.duration_frames),
+                    "layer": c.layer,
+                    "props": c.props
+                }
+                for c in self.components
+            ]
+        }

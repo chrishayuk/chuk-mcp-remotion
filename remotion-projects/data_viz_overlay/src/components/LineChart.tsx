@@ -1,0 +1,315 @@
+import React from 'react';
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+
+interface DataPoint {
+  x: number;
+  y: number;
+  label?: string;
+}
+
+interface LineChartProps {
+  data: Array<[number, number]> | DataPoint[];
+  title?: string;
+  xlabel?: string;
+  ylabel?: string;
+  startFrame: number;
+  durationInFrames: number;
+}
+
+export const LineChart: React.FC<LineChartProps> = ({
+  data,
+  title,
+  xlabel,
+  ylabel,
+  startFrame,
+  durationInFrames
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const relativeFrame = frame - startFrame;
+
+  // Don't render if outside the time range
+  if (frame < startFrame || frame >= startFrame + durationInFrames) {
+    return null;
+  }
+
+  // Convert data to consistent format
+  const dataPoints: DataPoint[] = data.map((point) => {
+    if (Array.isArray(point)) {
+      return { x: point[0], y: point[1] };
+    }
+    return point as DataPoint;
+  });
+
+  // Calculate bounds
+  const xValues = dataPoints.map(p => p.x);
+  const yValues = dataPoints.map(p => p.y);
+  const xMin = Math.min(...xValues);
+  const xMax = Math.max(...xValues);
+  const yMin = Math.min(...yValues);
+  const yMax = Math.max(...yValues);
+
+  // Chart dimensions
+  const chartWidth = 800;
+  const chartHeight = 400;
+  const padding = 60;
+
+  // Entrance animation - scale + fade with spring (using gentle spring for smooth entrance)
+  const entranceProgress = spring({
+    frame: relativeFrame,
+    fps,
+    config: {
+      damping: 200,
+      mass: 0.5,
+      stiffness: 200
+    }
+  });
+
+  // Exit animation - fade out in last frames (using default duration from motion tokens)
+  const exitDuration = 20;
+  const exitProgress = interpolate(
+    relativeFrame,
+    [durationInFrames - exitDuration, durationInFrames],
+    [1, 0],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
+    }
+  );
+
+  // Combined opacity
+  const opacity = entranceProgress * exitProgress;
+
+  // Scale animation for entrance
+  const scale = interpolate(entranceProgress, [0, 1], [0.85, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
+  });
+
+  // Title slides down separately
+  const titleTranslateY = interpolate(entranceProgress, [0, 1], [-30, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
+  });
+
+  // Line drawing animation - delayed slightly for staggered entrance effect
+  const lineDelay = 10;  // Half of default duration
+  const lineProgress = spring({
+    frame: Math.max(0, relativeFrame - lineDelay),
+    fps,
+    config: {
+      damping: 200,
+      mass: 0.5,
+      stiffness: 200
+    }
+  });
+
+  // Data point animation timing (using motion tokens)
+  const pointStagger = 2;  // Stagger between points
+  const pointFadeDuration = 13.0;  // Fade in duration per point
+
+  // Scale coordinates to chart space
+  const scaleX = (x: number) => {
+    const normalized = (x - xMin) / (xMax - xMin);
+    return padding + normalized * (chartWidth - 2 * padding);
+  };
+
+  const scaleY = (y: number) => {
+    const normalized = (y - yMin) / (yMax - yMin);
+    return chartHeight - padding - normalized * (chartHeight - 2 * padding);
+  };
+
+  // Generate path with animation
+  const numPointsToShow = Math.floor(lineProgress * dataPoints.length);
+  const visiblePoints = dataPoints.slice(0, Math.max(1, numPointsToShow));
+
+  // Create SVG path
+  const pathData = visiblePoints.map((point, idx) => {
+    const x = scaleX(point.x);
+    const y = scaleY(point.y);
+    return idx === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+  }).join(' ');
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: `translate(-50%, -50%) scale(${scale})`,
+          opacity,
+          fontFamily: "'Inter', 'SF Pro Display', 'system-ui', 'sans-serif'",
+          filter: 'drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5))'
+        }}
+      >
+        <h3
+          style={{
+            fontSize: 32,
+            fontWeight: 700,
+            color: '#FFFFFF',
+            marginBottom: 20,
+            textAlign: 'center',
+            transform: `translateY(${titleTranslateY}px)`,
+            textShadow: '0 2px 20px rgba(0, 102, 255, 0.5)',
+            letterSpacing: '-0.02em'
+          }}
+        >
+          Monthly Revenue Growth
+        </h3>
+
+        <svg
+          width={chartWidth}
+          height={chartHeight}
+          style={{
+            borderRadius: 16,
+            padding: 20,
+            overflow: 'visible'
+          }}
+        >
+          {/* Background with gradient */}
+          <defs>
+            <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(26, 31, 46, 0.98)" />
+              <stop offset="100%" stopColor="rgba(20, 25, 40, 0.98)" />
+            </linearGradient>
+            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#0066FF" />
+              <stop offset="100%" stopColor="#00D9FF" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Background rect with gradient */}
+          <rect
+            x="0"
+            y="0"
+            width={chartWidth}
+            height={chartHeight}
+            fill="url(#bgGradient)"
+            rx="16"
+          />
+          {/* Grid lines */}
+          <g stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1">
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+              const y = padding + ratio * (chartHeight - 2 * padding);
+              return (
+                <line
+                  key={`grid-${ratio}`}
+                  x1={padding}
+                  y1={y}
+                  x2={chartWidth - padding}
+                  y2={y}
+                />
+              );
+            })}
+          </g>
+
+          {/* Axes */}
+          <g stroke="#8B92A4" strokeWidth="2">
+            {/* Y axis */}
+            <line
+              x1={padding}
+              y1={padding}
+              x2={padding}
+              y2={chartHeight - padding}
+            />
+            {/* X axis */}
+            <line
+              x1={padding}
+              y1={chartHeight - padding}
+              x2={chartWidth - padding}
+              y2={chartHeight - padding}
+            />
+          </g>
+
+          {/* Line path with glow */}
+          <path
+            d={pathData}
+            fill="none"
+            stroke="url(#lineGradient)"
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#glow)"
+            style={{ opacity: lineProgress }}
+          />
+
+          {/* Data points with glow */}
+          {visiblePoints.map((point, idx) => {
+            const x = scaleX(point.x);
+            const y = scaleY(point.y);
+            const pointDelay = idx * pointStagger;
+            const pointProgress = interpolate(
+              relativeFrame,
+              [pointDelay, pointDelay + pointFadeDuration],
+              [0, 1],
+              { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+            );
+            const pulseScale = 1 + Math.sin((relativeFrame - pointDelay) * 0.1) * 0.1 * pointProgress;
+
+            return (
+              <g key={idx} style={{ opacity: pointProgress }}>
+                {/* Outer glow */}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={10 * pulseScale}
+                  fill="#00D9FF"
+                  opacity={0.2}
+                />
+                {/* Main point */}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="7"
+                  fill="#00D9FF"
+                  stroke="#0A0E1A"
+                  strokeWidth="2"
+                  filter="url(#glow)"
+                />
+                {/* Inner highlight */}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="3"
+                  fill="rgba(255, 255, 255, 0.6)"
+                />
+              </g>
+            );
+          })}
+
+          {/* Labels */}
+          <text
+            x={chartWidth / 2}
+            y={chartHeight - 10}
+            textAnchor="middle"
+            fill="#8B92A4"
+            fontSize="14"
+            fontFamily="'Inter', 'SF Pro Text', 'system-ui', 'sans-serif'"
+          >
+            Month
+          </text>
+
+          <text
+            x={20}
+            y={chartHeight / 2}
+            textAnchor="middle"
+            fill="#8B92A4"
+            fontSize="14"
+            fontFamily="'Inter', 'SF Pro Text', 'system-ui', 'sans-serif'"
+            transform={`rotate(-90 20 ${chartHeight / 2})`}
+          >
+            Revenue ($)
+          </text>
+        </svg>
+      </div>
+    </AbsoluteFill>
+  );
+};

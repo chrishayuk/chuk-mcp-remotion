@@ -1,0 +1,139 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chuk-mcp-remotion"
+version = "0.1.0"
+description = "Remotion MCP Server - A design-system-first approach to AI-powered video generation"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Chris Hay" }]
+dependencies = [
+    "chuk-mcp-server>=0.4.4",
+    "pydantic>=2.11.7",
+    "aiofiles>=23.0.0",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "pytest-mock>=3.10.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "black>=23.0.0",
+    "types-pyyaml>=6.0.0",
+]
+
+[project.scripts]
+chuk-mcp-remotion = "chuk_mcp_remotion.server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["chuk_mcp_remotion*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+chuk_mcp_remotion = [
+    "py.typed",
+    "*.json",
+    "*.yaml",
+    "*.yml",
+    "generator/templates/**/*",
+    "remotion-templates/**/*"
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_default_test_loop_scope = "function"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "asyncio: mark a test as an async test",
+    "slow: mark test as slow",
+    "integration: mark test as integration test",
+]
+addopts = [
+    "--tb=short",
+    "-v",
+    "--disable-warnings",
+]
+
+# Ruff configuration
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.isort]
+known-first-party = ["chuk_mcp_remotion"]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+warn_return_any = false
+warn_unused_configs = true
+files = ["src/chuk_mcp_remotion"]
+exclude = ["tests/", "examples/"]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/examples/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "pytest-mock>=3.10.0",
+    "ruff>=0.3.0",
+    "mypy>=1.9.0",
+    "black>=23.0.0",
+    "types-pyyaml>=6.0.0",
+]
