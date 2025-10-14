@@ -103,7 +103,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       }}
     >
       <Highlight
-        theme={themes.vsDark}
+        theme={themes.nightOwl}
         code={code}
         language={language as any}
       >

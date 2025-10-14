@@ -20,7 +20,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   startFrame,
   durationInFrames,
   variant = 'editor',
-  animation = 'slide_up',
+  animation = 'fade_in',
   show_line_numbers = true
 }) => {
   const frame = useCurrentFrame();
@@ -32,21 +32,14 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     return null;
   }
 
-  // Slide up animation
-  const progress = spring({
-    frame: relativeFrame,
-    fps,
-    config: {
-      damping: 200,
-      mass: 0.5,
-      stiffness: 200
-    }
+  // Default: fade in
+  const opacity = interpolate(relativeFrame, [0, 20], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp'
   });
-  const opacity = progress;
   const scale = 1;
-  const translateY = interpolate(progress, [0, 1], [50, 0]);
+  const translateY = 0;
   const blur = 0;
-
 
   // Exit animation
   const exitDuration = 20;
@@ -116,61 +109,15 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       }}
     >
       <Highlight
-        theme={themes.vsDark}
+        theme={themes.nightOwl}
         code={code}
         language={language as any}
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <div style={variantStyle}>
-            {/* Editor title bar */}
-            <div
-              style={{
-                background: 'rgba(0, 0, 0, 0.3)',
-                padding: '12px 20px',
-                borderTopLeftRadius: 12,
-                borderTopRightRadius: 12,
-                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8
-              }}
-            >
-              {/* Window buttons */}
-              <div style={{ display: 'flex', gap: 6 }}>
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF5F56' }} />
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFBD2E' }} />
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#27C93F' }} />
-              </div>
-              <div
-                style={{
-                  fontSize: '24px',
-                  color: '#8B92A4',
-                  marginLeft: 12,
-                  fontFamily: "'Inter', 'SF Pro Text', 'system-ui', 'sans-serif'"
-                }}
-              >
-                fibonacci.js
-              </div>
-            </div>
-            <div style={{ padding: 30 }}>
+            <div>
               {/* Code content with syntax highlighting */}
               <div style={{ display: 'flex', gap: 20 }}>
-                {show_line_numbers && (
-                  <div
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.3)',
-                      fontSize: '32px',
-                      lineHeight: 1.8,
-                      textAlign: 'right',
-                      userSelect: 'none',
-                      minWidth: 50
-                    }}
-                  >
-                    {tokens.map((_, idx) => (
-                      <div key={idx}>{idx + 1}</div>
-                    ))}
-                  </div>
-                )}
 
                 {/* Code with syntax highlighting */}
                 <div

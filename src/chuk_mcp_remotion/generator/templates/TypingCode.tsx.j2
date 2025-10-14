@@ -139,7 +139,7 @@ export const TypingCode: React.FC<TypingCodeProps> = ({
       }}
     >
       <Highlight
-        theme={themes.vsDark}
+        theme={themes.nightOwl}
         code={displayedCode}
         language={language as any}
       >
