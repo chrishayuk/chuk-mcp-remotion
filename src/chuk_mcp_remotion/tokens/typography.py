@@ -1,3 +1,4 @@
+# chuk-mcp-remotion/src/chuk_mcp_remotion/tokens/typography.py
 """
 Typography tokens for Remotion video design system.
 

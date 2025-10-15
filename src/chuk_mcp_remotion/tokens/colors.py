@@ -1,3 +1,4 @@
+# chuk-mcp-remotion/src/chuk_mcp_remotion/tokens/colors.py
 """
 Color tokens for Remotion video design system.
 

@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from chuk_mcp_server import ChukMCPServer
+from chuk_virtual_fs import AsyncVirtualFileSystem
 
 # Import design system modules
 from .tokens.colors import COLOR_TOKENS
@@ -23,6 +24,8 @@ from .registry.components import COMPONENT_REGISTRY
 from .themes.youtube_themes import YOUTUBE_THEMES
 from .utils.project_manager import ProjectManager
 from .generator.composition_builder import CompositionBuilder
+from .tools.theme_tools import register_theme_tools
+from .tools.token_tools import register_token_tools
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,8 +33,15 @@ logger = logging.getLogger(__name__)
 # Create the MCP server instance
 mcp = ChukMCPServer("chuk-mcp-remotion")
 
+# Create virtual filesystem instance (using file provider for actual file operations)
+vfs = AsyncVirtualFileSystem(provider="file")
+
 # Create project manager instance
 project_manager = ProjectManager()
+
+# Register theme and token tools with virtual filesystem
+register_theme_tools(mcp, project_manager, vfs)
+register_token_tools(mcp, project_manager, vfs)
 
 # ============================================================================
 # DISCOVERY TOOLS - Help LLMs explore the design system
@@ -142,117 +152,11 @@ async def remotion_get_component_schema(component_name: str) -> str:
     return await asyncio.get_event_loop().run_in_executor(None, _get_schema)
 
 
-@mcp.tool
-async def remotion_list_themes() -> str:
-    """
-    List available YouTube video themes.
+# Note: Theme tools (remotion_list_themes, remotion_get_theme_info, etc.)
+# are now registered via register_theme_tools() above
 
-    Returns all pre-built themes optimized for YouTube videos. Each theme includes
-    color palettes, typography settings, and motion design tokens optimized for
-    specific content types (tech, finance, education, gaming, etc.).
-
-    Returns:
-        JSON object with all available themes and their tokens
-
-    Example:
-        themes = await remotion_list_themes()
-        # Returns all themes (tech, finance, education, lifestyle, gaming, etc.)
-    """
-    def _list():
-        return json.dumps(YOUTUBE_THEMES, indent=2)
-
-    return await asyncio.get_event_loop().run_in_executor(None, _list)
-
-
-@mcp.tool
-async def remotion_get_theme_info(theme_name: str) -> str:
-    """
-    Get detailed information about a specific theme.
-
-    Returns all design tokens for a theme including colors, gradients,
-    typography, and motion settings.
-
-    Args:
-        theme_name: Name of the theme (e.g., "tech", "finance", "education")
-
-    Returns:
-        JSON object with theme tokens and settings
-
-    Example:
-        theme = await remotion_get_theme_info(theme_name="tech")
-        # Returns tech theme with blue/cyan colors and modern typography
-    """
-    def _get_theme():
-        if theme_name not in YOUTUBE_THEMES:
-            return json.dumps({"error": f"Theme '{theme_name}' not found"})
-
-        return json.dumps(YOUTUBE_THEMES[theme_name], indent=2)
-
-    return await asyncio.get_event_loop().run_in_executor(None, _get_theme)
-
-
-@mcp.tool
-async def remotion_list_color_tokens() -> str:
-    """
-    List all available color tokens.
-
-    Returns the complete color palette system including primary, accent, and
-    semantic colors for all themes. Useful for customizing colors beyond
-    the default theme settings.
-
-    Returns:
-        JSON object with color tokens organized by theme
-
-    Example:
-        colors = await remotion_list_color_tokens()
-        # Returns all color tokens (primary, accent, gradients, text colors)
-    """
-    def _list():
-        return json.dumps(COLOR_TOKENS, indent=2)
-
-    return await asyncio.get_event_loop().run_in_executor(None, _list)
-
-
-@mcp.tool
-async def remotion_list_typography_tokens() -> str:
-    """
-    List all available typography tokens.
-
-    Returns font families, sizes, weights, and scales optimized for video.
-    These tokens ensure text is readable and visually appealing on screen.
-
-    Returns:
-        JSON object with typography tokens
-
-    Example:
-        typography = await remotion_list_typography_tokens()
-        # Returns font families, sizes, weights, line heights
-    """
-    def _list():
-        return json.dumps(TYPOGRAPHY_TOKENS, indent=2)
-
-    return await asyncio.get_event_loop().run_in_executor(None, _list)
-
-
-@mcp.tool
-async def remotion_list_motion_tokens() -> str:
-    """
-    List all available motion design tokens.
-
-    Returns spring configurations, easing curves, and duration presets
-    for creating smooth, professional animations.
-
-    Returns:
-        JSON object with motion tokens (springs, easings, durations)
-
-    Example:
-        motion = await remotion_list_motion_tokens()
-        # Returns spring configs, easing curves, duration presets
-    """
-    def _list():
-        return json.dumps(MOTION_TOKENS, indent=2)
-
-    return await asyncio.get_event_loop().run_in_executor(None, _list)
+# Note: Token tools (remotion_list_color_tokens, remotion_list_typography_tokens,
+# remotion_list_motion_tokens, etc.) are now registered via register_token_tools() above
 
 
 # ============================================================================

@@ -1,3 +1,4 @@
+# chuk-mcp-remotion/src/chuk_mcp_remotion/themes/youtube_themes.py
 """
 YouTube-optimized themes combining color, typography, and motion tokens.
 

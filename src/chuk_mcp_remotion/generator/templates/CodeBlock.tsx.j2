@@ -175,7 +175,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       }}
     >
       <Highlight
-        theme={themes.nightOwl}
+        theme={themes.vsDark}
         code={code}
         language={language as any}
       >
@@ -205,7 +205,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
               <div
                 style={{
                   fontSize: '[[ font_sizes.xs ]]',
-                  color: '[[ colors.text.muted ]]',
+                  color: 'rgba(255, 255, 255, 0.7)',
                   marginLeft: 12,
                   fontFamily: "'[[ "', '".join(typography.body_font.fonts) ]]'"
                 }}

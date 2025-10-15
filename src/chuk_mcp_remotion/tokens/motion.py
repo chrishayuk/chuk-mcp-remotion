@@ -1,3 +1,4 @@
+# chuk-mcp-remotion/src/chuk_mcp_remotion/tokens/motion.py
 """
 Motion design tokens for Remotion animations.
 
