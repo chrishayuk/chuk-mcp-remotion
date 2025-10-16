@@ -11,6 +11,7 @@ interface CodeBlockProps {
   variant?: string;
   animation?: string;
   show_line_numbers?: boolean;
+  highlight_lines?: number[];
 }
 
 export const CodeBlock: React.FC<CodeBlockProps> = ({
@@ -19,9 +20,10 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
   title,
   startFrame,
   durationInFrames,
-  variant = '[[ config.variant ]]',
-  animation = '[[ config.animation ]]',
-  show_line_numbers = [[ 'true' if config.show_line_numbers else 'false' ]]
+  variant = 'editor',
+  animation = 'fade_in',
+  show_line_numbers = true,
+  highlight_lines = []
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -32,83 +34,53 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     return null;
   }
 
-  [% if config.animation == 'fade_in' %]
-  // Fade in animation
-  const progress = spring({
-    frame: relativeFrame,
-    fps,
-    config: {
-      damping: [[ motion.default_spring.config.damping ]],
-      mass: [[ motion.default_spring.config.mass ]],
-      stiffness: [[ motion.default_spring.config.stiffness ]]
-    }
-  });
-  const opacity = progress;
-  const scale = 1;
-  const translateY = 0;
-  const blur = 0;
+  // Animation logic
+  let opacity = 1;
+  let scale = 1;
+  let translateY = 0;
+  let blur = 0;
 
-  [% elif config.animation == 'slide_up' %]
-  // Slide up animation
-  const progress = spring({
-    frame: relativeFrame,
-    fps,
-    config: {
-      damping: [[ motion.default_spring.config.damping ]],
-      mass: [[ motion.default_spring.config.mass ]],
-      stiffness: [[ motion.default_spring.config.stiffness ]]
-    }
-  });
-  const opacity = progress;
-  const scale = 1;
-  const translateY = interpolate(progress, [0, 1], [50, 0]);
-  const blur = 0;
-
-  [% elif config.animation == 'scale_in' %]
-  // Scale in animation
-  const progress = spring({
-    frame: relativeFrame,
-    fps,
-    config: {
-      damping: [[ motion.default_spring.config.damping ]],
-      mass: [[ motion.default_spring.config.mass ]],
-      stiffness: [[ motion.default_spring.config.stiffness ]]
-    }
-  });
-  const opacity = progress;
-  const scale = interpolate(progress, [0, 1], [0.9, 1]);
-  const translateY = 0;
-  const blur = 0;
-
-  [% elif config.animation == 'blur_in' %]
-  // Blur to focus animation
-  const progress = spring({
-    frame: relativeFrame,
-    fps,
-    config: {
-      damping: [[ motion.default_spring.config.damping ]],
-      mass: [[ motion.default_spring.config.mass ]],
-      stiffness: [[ motion.default_spring.config.stiffness ]]
-    }
-  });
-  const opacity = progress;
-  const scale = 1;
-  const translateY = 0;
-  const blur = interpolate(progress, [0, 1], [10, 0]);
-
-  [% else %]
-  // Default: fade in
-  const opacity = interpolate(relativeFrame, [0, [[ motion.default_duration.frames ]]], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  });
-  const scale = 1;
-  const translateY = 0;
-  const blur = 0;
-  [% endif %]
+  if (animation === 'fade_in') {
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: { damping: 200, mass: 0.5, stiffness: 200 }
+    });
+    opacity = progress;
+  } else if (animation === 'slide_up') {
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: { damping: 200, mass: 0.5, stiffness: 200 }
+    });
+    opacity = progress;
+    translateY = interpolate(progress, [0, 1], [50, 0]);
+  } else if (animation === 'scale_in') {
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: { damping: 200, mass: 0.5, stiffness: 200 }
+    });
+    opacity = progress;
+    scale = interpolate(progress, [0, 1], [0.9, 1]);
+  } else if (animation === 'blur_in') {
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: { damping: 200, mass: 0.5, stiffness: 200 }
+    });
+    opacity = progress;
+    blur = interpolate(progress, [0, 1], [10, 0]);
+  } else {
+    // Default: fade in
+    opacity = interpolate(relativeFrame, [0, 20], [0, 1], {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
+    });
+  }
 
   // Exit animation
-  const exitDuration = [[ motion.default_duration.frames ]];
+  const exitDuration = 20;
   const exitProgress = interpolate(
     relativeFrame,
     [durationInFrames - exitDuration, durationInFrames],
@@ -128,10 +100,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       borderRadius: 12,
       border: 'none',
       padding: 20,
-      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
-      maxWidth: '100%',
-      maxHeight: '100%',
-      overflow: 'hidden'
+      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)'
     },
     terminal: {
       background: 'rgba(20, 20, 20, 0.98)',
@@ -148,7 +117,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)'
     },
     glass: {
-      background: '[[ colors.background.glass ]]',
+      background: 'rgba(255, 255, 255, 0.05)',
       backdropFilter: 'blur(20px)',
       borderRadius: 16,
       border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -170,7 +139,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
         transform: `scale(${scale}) translateY(${translateY}px)`,
         opacity: finalOpacity,
         filter: `blur(${blur}px)`,
-        fontFamily: "'[[ "', '".join(typography.code_font.fonts) ]]'",
+        fontFamily: "'Fira Code', 'Monaco', 'Consolas', 'monospace'",
         overflow: 'hidden'
       }}
     >
@@ -181,95 +150,156 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <div style={variantStyle}>
-            [% if config.title %]
-            [% if config.variant == 'editor' %]
-            {/* Editor title bar */}
-            <div
-              style={{
-                background: 'rgba(0, 0, 0, 0.3)',
-                padding: '12px 20px',
-                borderTopLeftRadius: 12,
-                borderTopRightRadius: 12,
-                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8
-              }}
-            >
-              {/* Window buttons */}
-              <div style={{ display: 'flex', gap: 6 }}>
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF5F56' }} />
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFBD2E' }} />
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#27C93F' }} />
-              </div>
-              <div
-                style={{
-                  fontSize: '[[ font_sizes.xs ]]',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  marginLeft: 12,
-                  fontFamily: "'[[ "', '".join(typography.body_font.fonts) ]]'"
-                }}
-              >
-                [[ config.title ]]
-              </div>
-            </div>
-            <div style={{ padding: 30 }}>
-            [% else %]
-            <div
-              style={{
-                fontSize: '[[ font_sizes.lg ]]',
-                fontWeight: 600,
-                color: '[[ colors.text.on_dark ]]',
-                marginBottom: 20,
-                fontFamily: "'[[ "', '".join(typography.body_font.fonts) ]]'"
-              }}
-            >
-              [[ config.title ]]
-            </div>
-            [% endif %]
-            [% else %]
-            <div>
-            [% endif %]
-              {/* Code content with syntax highlighting */}
-              <div style={{ display: 'flex', gap: 20 }}>
-                {show_line_numbers && (
-                  <div
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.3)',
-                      fontSize: '[[ font_sizes.sm ]]',
-                      lineHeight: 1.8,
-                      textAlign: 'right',
-                      userSelect: 'none',
-                      minWidth: 50
-                    }}
-                  >
-                    {tokens.map((_, idx) => (
-                      <div key={idx}>{idx + 1}</div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Code with syntax highlighting */}
+            {title && variant === 'editor' ? (
+              <>
                 <div
                   style={{
-                    flex: 1,
-                    fontSize: '[[ font_sizes.sm ]]',
-                    lineHeight: 1.6,
-                    overflow: 'auto',
-                    maxHeight: '100%',
-                    whiteSpace: 'pre'
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    padding: '12px 20px',
+                    borderTopLeftRadius: 12,
+                    borderTopRightRadius: 12,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
                   }}
                 >
-                  {tokens.map((line, i) => (
-                    <div key={i} {...getLineProps({ line })}>
-                      {line.map((token, key) => (
-                        <span key={key} {...getTokenProps({ token })} />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF5F56' }} />
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFBD2E' }} />
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#27C93F' }} />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      marginLeft: 12,
+                      fontFamily: "'Inter', 'SF Pro Display', 'system-ui', 'sans-serif'"
+                    }}
+                  >
+                    {title}
+                  </div>
+                </div>
+                <div style={{ padding: 30 }}>
+                  <div style={{ display: 'flex', gap: 20 }}>
+                    {show_line_numbers && (
+                      <div
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.3)',
+                          fontSize: 16,
+                          lineHeight: 1.8,
+                          textAlign: 'right',
+                          userSelect: 'none',
+                          minWidth: 50
+                        }}
+                      >
+                        {tokens.map((_, idx) => (
+                          <div key={idx}>{idx + 1}</div>
+                        ))}
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        flex: 1,
+                        fontSize: 18,
+                        lineHeight: 1.6,
+                        overflow: 'auto',
+                        maxHeight: '100%',
+                        whiteSpace: 'pre'
+                      }}
+                    >
+                      {tokens.map((line, i) => {
+                        const isHighlighted = highlight_lines.includes(i + 1);
+                        return (
+                          <div
+                            key={i}
+                            {...getLineProps({ line })}
+                            style={{
+                              ...getLineProps({ line }).style,
+                              backgroundColor: isHighlighted ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                              paddingLeft: 10,
+                              paddingRight: 10,
+                              marginLeft: -10,
+                              marginRight: -10
+                            }}
+                          >
+                            {line.map((token, key) => (
+                              <span key={key} {...getTokenProps({ token })} />
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: variant === 'editor' ? 30 : 0 }}>
+                {title && variant !== 'editor' && (
+                  <div
+                    style={{
+                      fontSize: 24,
+                      fontWeight: 600,
+                      color: '#FFFFFF',
+                      marginBottom: 20,
+                      fontFamily: "'Inter', 'SF Pro Display', 'system-ui', 'sans-serif'"
+                    }}
+                  >
+                    {title}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 20 }}>
+                  {show_line_numbers && (
+                    <div
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.3)',
+                        fontSize: 16,
+                        lineHeight: 1.8,
+                        textAlign: 'right',
+                        userSelect: 'none',
+                        minWidth: 50
+                      }}
+                    >
+                      {tokens.map((_, idx) => (
+                        <div key={idx}>{idx + 1}</div>
                       ))}
                     </div>
-                  ))}
+                  )}
+                  <div
+                    style={{
+                      flex: 1,
+                      fontSize: 18,
+                      lineHeight: 1.6,
+                      overflow: 'auto',
+                      maxHeight: '100%',
+                      whiteSpace: 'pre'
+                    }}
+                  >
+                    {tokens.map((line, i) => {
+                      const isHighlighted = highlight_lines.includes(i + 1);
+                      return (
+                        <div
+                          key={i}
+                          {...getLineProps({ line })}
+                          style={{
+                            ...getLineProps({ line }).style,
+                            backgroundColor: isHighlighted ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                            paddingLeft: 10,
+                            paddingRight: 10,
+                            marginLeft: -10,
+                            marginRight: -10
+                          }}
+                        >
+                          {line.map((token, key) => (
+                            <span key={key} {...getTokenProps({ token })} />
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </Highlight>

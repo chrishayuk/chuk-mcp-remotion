@@ -5,12 +5,30 @@ interface GridProps {
   children: React.ReactNode[];
   startFrame: number;
   durationInFrames: number;
+  layout?: string;
+  padding?: number;
+  gap?: number;
+  border_width?: number;
+  border_color?: string;
+  border_radius?: number;
+  cell_background?: string;
+  align_items?: string;
+  justify_items?: string;
 }
 
 export const Grid: React.FC<GridProps> = ({
   children,
   startFrame,
-  durationInFrames
+  durationInFrames,
+  layout = '3x3',
+  padding = 40,
+  gap = 20,
+  border_width,
+  border_color = 'rgba(255, 255, 255, 0.2)',
+  border_radius = 8,
+  cell_background,
+  align_items,
+  justify_items
 }) => {
   const frame = useCurrentFrame();
   const relativeFrame = frame - startFrame;
@@ -21,7 +39,7 @@ export const Grid: React.FC<GridProps> = ({
   }
 
   // Grid layout configurations
-  const layouts = {
+  const layouts: Record<string, { gridTemplateColumns: string; gridTemplateRows: string }> = {
     '1x2': {
       gridTemplateColumns: '1fr',
       gridTemplateRows: '1fr 1fr'
@@ -56,33 +74,24 @@ export const Grid: React.FC<GridProps> = ({
     }
   };
 
-  const layoutStyle = layouts['[[ config.layout or "3x3" ]]'] || layouts['3x3'];
+  const layoutStyle = layouts[layout] || layouts['3x3'];
 
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
       <div
         style={{
           position: 'absolute',
-          [% if config.padding %]
-          top: [[ config.padding ]],
-          left: [[ config.padding ]],
-          right: [[ config.padding ]],
-          bottom: [[ config.padding ]],
-          [% else %]
-          top: 40,
-          left: 40,
-          right: 40,
-          bottom: 40,
-          [% endif %]
+          top: padding,
+          left: padding,
+          right: padding,
+          bottom: padding,
           display: 'grid',
           ...layoutStyle,
-          gap: [[ config.gap or 20 ]],
-          [% if config.align_items %]
-          alignItems: '[[ config.align_items ]]',
-          [% endif %]
-          [% if config.justify_items %]
-          justifyItems: '[[ config.justify_items ]]',
-          [% endif %]
+          gap: gap,
+          width: `calc(100% - ${padding * 2}px)`,
+          height: `calc(100% - ${padding * 2}px)`,
+          ...(align_items && { alignItems: align_items }),
+          ...(justify_items && { justifyItems: justify_items }),
         }}
       >
         {Array.isArray(children) ? children.map((child, idx) => (
@@ -91,7 +100,12 @@ export const Grid: React.FC<GridProps> = ({
             height: '100%',
             display: 'flex',
             overflow: 'hidden',
-            position: 'relative'
+            position: 'relative',
+            ...(border_width && {
+              border: `${border_width}px solid ${border_color}`,
+              borderRadius: border_radius
+            }),
+            ...(cell_background && { background: cell_background }),
           }}>
             {child}
           </div>

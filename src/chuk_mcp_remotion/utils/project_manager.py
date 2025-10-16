@@ -234,3 +234,195 @@ class ProjectManager:
                 })
 
         return projects
+
+    def build_composition_from_scenes(
+        self,
+        scenes: list,
+        theme: str = "tech"
+    ) -> Dict[str, str]:
+        """
+        Build a complete composition from scene configurations.
+
+        This method takes a list of scene dictionaries and:
+        1. Converts them to ComponentInstance objects
+        2. Generates TSX files for each component type
+        3. Builds the final VideoComposition.tsx
+
+        Args:
+            scenes: List of scene dictionaries with type, config, startFrame, durationInFrames
+            theme: Theme to use for generation
+
+        Returns:
+            Dictionary with paths to generated files
+
+        Example scene format:
+            {
+                "type": "TitleScene",
+                "config": {"title": "Hello", "subtitle": "World"},
+                "startFrame": 0,
+                "durationInFrames": 90
+            }
+        """
+        if not self.current_project or not self.current_composition:
+            raise ValueError("No active project. Create a project first.")
+
+        from ..generator.composition_builder import ComponentInstance
+
+        project_dir = self.workspace_dir / self.current_project
+        components_dir = project_dir / "src" / "components"
+
+        # Track unique component types that need TSX files
+        component_types_needed = set()
+        generated_files = []
+
+        # Process each scene
+        for scene in scenes:
+            scene_type = scene.get("type")
+            scene_config = scene.get("config", {})
+            start_frame = scene.get("startFrame", 0)
+            duration_frames = scene.get("durationInFrames", 90)
+
+            # Track this component type
+            component_types_needed.add(scene_type)
+
+            # Create ComponentInstance and add to composition
+            component_instance = ComponentInstance(
+                component_type=scene_type,
+                start_frame=start_frame,
+                duration_frames=duration_frames,
+                props=scene_config,
+                layer=0  # Main content layer
+            )
+
+            # Handle nested children recursively
+            self._process_nested_children(scene, component_instance, component_types_needed)
+
+            self.current_composition.components.append(component_instance)
+
+        # Generate TSX files for all unique component types
+        for component_type in component_types_needed:
+            try:
+                # Generate component code
+                tsx_code = self.component_builder.build_component(
+                    component_type,
+                    {},  # Empty config - templates handle props from VideoComposition
+                    theme
+                )
+
+                # Write component file
+                component_file = components_dir / f"{component_type}.tsx"
+                component_file.write_text(tsx_code)
+                generated_files.append(str(component_file))
+
+            except Exception as e:
+                print(f"⚠️  Warning: Could not generate {component_type}: {e}")
+
+        # Generate the main VideoComposition.tsx
+        composition_file = self.generate_composition()
+        generated_files.append(composition_file)
+
+        return {
+            "project": self.current_project,
+            "composition_file": composition_file,
+            "component_files": generated_files,
+            "component_types": list(component_types_needed),
+            "total_frames": self.current_composition.get_total_duration_frames()
+        }
+
+    def _process_nested_children(
+        self,
+        scene: Dict,
+        component_instance: 'ComponentInstance',
+        component_types_needed: set
+    ):
+        """
+        Process nested children in layout components.
+
+        Args:
+            scene: Scene dictionary that may contain nested children
+            component_instance: ComponentInstance to update with child components
+            component_types_needed: Set to track component types for TSX generation
+        """
+        from ..generator.composition_builder import ComponentInstance
+
+        # Handle different types of nested structures
+
+        # Grid and Container children (array or single)
+        if "children" in scene:
+            children = scene["children"]
+            if isinstance(children, list):
+                child_instances = []
+                for child in children:
+                    if isinstance(child, dict) and "type" in child:
+                        component_types_needed.add(child["type"])
+                        child_instance = ComponentInstance(
+                            component_type=child["type"],
+                            start_frame=scene.get("startFrame", 0),
+                            duration_frames=scene.get("durationInFrames", 90),
+                            props=child.get("config", {}),
+                            layer=5
+                        )
+                        child_instances.append(child_instance)
+                        # Recursively process nested children
+                        self._process_nested_children(child, child_instance, component_types_needed)
+                component_instance.props["children"] = child_instances
+            elif isinstance(children, dict) and "type" in children:
+                component_types_needed.add(children["type"])
+                child_instance = ComponentInstance(
+                    component_type=children["type"],
+                    start_frame=scene.get("startFrame", 0),
+                    duration_frames=scene.get("durationInFrames", 90),
+                    props=children.get("config", {}),
+                    layer=5
+                )
+                component_instance.props["children"] = child_instance
+                self._process_nested_children(children, child_instance, component_types_needed)
+
+        # SplitScreen left/right/top/bottom
+        for key in ["left", "right", "top", "bottom"]:
+            if key in scene:
+                child = scene[key]
+                if isinstance(child, dict) and "type" in child:
+                    component_types_needed.add(child["type"])
+                    child_instance = ComponentInstance(
+                        component_type=child["type"],
+                        start_frame=scene.get("startFrame", 0),
+                        duration_frames=scene.get("durationInFrames", 90),
+                        props=child.get("config", {}),
+                        layer=5
+                    )
+                    component_instance.props[key] = child_instance
+                    self._process_nested_children(child, child_instance, component_types_needed)
+
+        # Specialized layout components
+        specialized_keys = [
+            "mainFeed", "demo1", "demo2", "overlay",  # AsymmetricLayout
+            "center",  # ThreeColumnLayout
+            "middle",  # ThreeRowLayout
+            "hostView", "screenContent",  # OverTheShoulderLayout
+            "characterA", "characterB",  # DialogueFrameLayout
+            "originalClip", "reactorFace",  # StackedReactionLayout
+            "gameplay", "webcam", "chatOverlay",  # HUDStyleLayout
+            "frontCam", "overheadCam", "handCam", "detailCam",  # PerformanceMultiCamLayout
+            "hostStrip", "backgroundContent",  # FocusStripLayout
+            "mainContent", "pipContent",  # PiPLayout
+            "topContent", "bottomContent", "captionBar",  # VerticalLayout
+            "milestones", "clips",  # TimelineLayout, MosaicLayout
+            "content",  # Container
+            "leftPanel", "rightPanel", "topPanel", "bottomPanel"  # SplitScreen
+        ]
+
+        for key in specialized_keys:
+            if key in scene:
+                child = scene[key]
+                if isinstance(child, dict) and "type" in child:
+                    component_types_needed.add(child["type"])
+                    child_instance = ComponentInstance(
+                        component_type=child["type"],
+                        start_frame=scene.get("startFrame", 0),
+                        duration_frames=scene.get("durationInFrames", 90),
+                        props=child.get("config", {}),
+                        layer=10 if key == "overlay" else 5
+                    )
+                    component_instance.props[key] = child_instance
+                    self._process_nested_children(child, child_instance, component_types_needed)

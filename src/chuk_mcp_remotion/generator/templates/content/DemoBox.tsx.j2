@@ -31,6 +31,9 @@ export const DemoBox: React.FC<DemoBoxProps> = ({
 
   const bgColor = colorMap[color] || colorMap.primary;
 
+  // Split label by newlines to support multi-line text
+  const lines = label.split('\\n');
+
   return (
     <div
       style={{
@@ -40,6 +43,7 @@ export const DemoBox: React.FC<DemoBoxProps> = ({
         border: `2px solid ${bgColor}`,
         borderRadius: 8,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         fontFamily: '[[ typography.get("fonts", {}).get("body", "system-ui, sans-serif") ]]',
@@ -48,9 +52,12 @@ export const DemoBox: React.FC<DemoBoxProps> = ({
         color: bgColor,
         textTransform: 'uppercase',
         letterSpacing: '0.1em',
+        textAlign: 'center',
       }}
     >
-      {label}
+      {lines.map((line, i) => (
+        <div key={i}>{line}</div>
+      ))}
     </div>
   );
 };

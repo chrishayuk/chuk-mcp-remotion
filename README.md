@@ -80,20 +80,23 @@ The server generates Remotion projects, so you'll need Remotion installed:
 
 ## Examples
 
-### YouTube Layouts Showcase
+### Comprehensive Layouts Showcase (Recommended)
 
-See all available layouts in action:
+The definitive showcase demonstrating **ALL 17 layout types** in two parts:
 
 ```bash
-python examples/youtube_layouts.py
+python examples/comprehensive_layouts_showcase.py
 ```
 
-This creates a 32-second showcase demonstrating:
-- 3x3 Grid Layout
-- 3 Column Layout (custom widths)
-- 3 Row Layout (custom heights)
-- Asymmetric Layouts (main + demo panels)
-- Bordered layouts with mixed content
+This creates a complete showcase with:
+- **Part 1**: All layouts with DemoBox placeholders (structure-only)
+- **Part 2**: All layouts with realistic content (real-world usage)
+
+**Layouts included:**
+- Core: Grid, ThreeByThreeGrid, ThreeColumnLayout, ThreeRowLayout, AsymmetricLayout, SplitScreen, Container
+- Specialized: OverTheShoulder, DialogueFrame, StackedReaction, HUDStyle, PerformanceMultiCam, FocusStrip, PiP, Vertical, Timeline, Mosaic
+
+⏱️ Duration: ~2.5 minutes • 🎬 37 scenes • 📦 17+ component types
 
 [**Full YouTube Layouts Guide →**](docs/YOUTUBE_LAYOUTS.md)
 
@@ -156,6 +159,10 @@ remotion_list_motion_tokens()
 ```
 
 ## Component Catalog
+
+**📖 [Complete Component Documentation →](docs/components/README.md)**
+
+Explore detailed documentation for all components including props, variants, animations, and best practices. Each component has comprehensive guides with usage examples and design patterns.
 
 ### Scenes
 
@@ -388,7 +395,14 @@ chuk-mcp-remotion/
 │   ├── renderer/             # Remotion rendering
 │   └── utils/                # Utilities
 ├── docs/                     # Documentation
-│   └── YOUTUBE_LAYOUTS.md   # Layout guide
+│   ├── components/          # Component documentation
+│   │   ├── README.md       # Component catalog
+│   │   ├── COMPONENT_DESIGN.md  # Design principles
+│   │   ├── overlays/       # Overlay component docs
+│   │   ├── content/        # Content component docs
+│   │   └── layouts/        # Layout component docs
+│   ├── YOUTUBE_LAYOUTS.md  # Layout guide
+│   └── ALL_YOUTUBE_LAYOUTS.md  # Complete layouts guide
 ├── examples/                 # Example videos
 │   └── youtube_layouts.py   # Layout showcase
 ├── tests/                    # Tests
@@ -465,6 +479,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - **GitHub**: https://github.com/chrishayuk/chuk-mcp-remotion
 - **Documentation**: https://github.com/chrishayuk/chuk-mcp-remotion/docs
+- **Component Docs**: [Component Catalog](docs/components/README.md) | [Design Principles](docs/components/COMPONENT_DESIGN.md)
 - **Related Projects**:
   - [chuk-mcp-server](https://github.com/chrishayuk/chuk-mcp-server)
   - [chuk-mcp-pptx](https://github.com/chrishayuk/chuk-mcp-pptx)

@@ -566,68 +566,358 @@ class CompositionBuilder:
 
     def add_split_screen(
         self,
-        left_component: Optional[ComponentInstance] = None,
-        right_component: Optional[ComponentInstance] = None,
-        top_component: Optional[ComponentInstance] = None,
-        bottom_component: Optional[ComponentInstance] = None,
+        left_panel: Optional[ComponentInstance] = None,
+        right_panel: Optional[ComponentInstance] = None,
+        top_panel: Optional[ComponentInstance] = None,
+        bottom_panel: Optional[ComponentInstance] = None,
         start_time: float = 0.0,
         duration: float = 5.0,
-        direction: str = "horizontal",
+        orientation: str = "horizontal",
         ratio: float = 0.5,
         gap: int = 20,
         padding: int = 40,
-        show_divider: bool = False,
-        divider_color: Optional[str] = None,
-        divider_opacity: float = 0.3,
-        align_items: Optional[str] = None,
-        justify_content: Optional[str] = None
+        divider_width: int = 2,
+        divider_color: Optional[str] = None
     ) -> 'CompositionBuilder':
-        """
-        Add a split screen layout with two panels.
-
-        Args:
-            left_component: Component for left panel (horizontal split)
-            right_component: Component for right panel (horizontal split)
-            top_component: Component for top panel (vertical split)
-            bottom_component: Component for bottom panel (vertical split)
-            start_time: When to show (seconds)
-            duration: How long to show (seconds)
-            direction: Split direction (horizontal or vertical)
-            ratio: Split ratio (0.5 = 50/50, 0.6 = 60/40, etc.)
-            gap: Gap between panels
-            padding: Padding from edges
-            show_divider: Show divider line between panels
-            divider_color: Divider line color
-            divider_opacity: Divider line opacity
-            align_items: CSS align-items value
-            justify_content: CSS justify-content value
-
-        Returns:
-            Self for chaining
-        """
+        """Add SplitScreen layout to composition."""
         component = ComponentInstance(
             component_type="SplitScreen",
             start_frame=self.seconds_to_frames(start_time),
             duration_frames=self.seconds_to_frames(duration),
             props={
-                "direction": direction,
+                "orientation": orientation,
                 "ratio": ratio,
                 "gap": gap,
                 "padding": padding,
-                "show_divider": show_divider,
+                "divider_width": divider_width,
                 "divider_color": divider_color,
-                "divider_opacity": divider_opacity,
-                "align_items": align_items,
-                "justify_content": justify_content,
-                "left": left_component,
-                "right": right_component,
-                "top": top_component,
-                "bottom": bottom_component
+                "leftPanel": left_panel,
+                "rightPanel": right_panel,
+                "topPanel": top_panel,
+                "bottomPanel": bottom_panel
             },
             layer=5
         )
         self.components.append(component)
         return self
+
+    def add_three_by_three_grid(
+        self,
+        children: List[ComponentInstance],
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        padding: int = 40,
+        gap: int = 20,
+        border_width: Optional[int] = None,
+        border_color: str = "rgba(255,255,255,0.2)",
+        cell_background: Optional[str] = None
+    ) -> 'CompositionBuilder':
+        """Add ThreeByThreeGrid layout to composition."""
+        component = ComponentInstance(
+            component_type="ThreeByThreeGrid",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "padding": padding,
+                "gap": gap,
+                "border_width": border_width,
+                "border_color": border_color,
+                "cell_background": cell_background,
+                "children": children
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_three_column_layout(
+        self,
+        left: Optional[ComponentInstance] = None,
+        center: Optional[ComponentInstance] = None,
+        right: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        left_width: int = 33,
+        center_width: int = 34,
+        right_width: int = 33,
+        gap: int = 20,
+        padding: int = 40,
+        border_width: Optional[int] = None
+    ) -> 'CompositionBuilder':
+        """Add ThreeColumnLayout to composition."""
+        component = ComponentInstance(
+            component_type="ThreeColumnLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "left_width": left_width,
+                "center_width": center_width,
+                "right_width": right_width,
+                "gap": gap,
+                "padding": padding,
+                "border_width": border_width,
+                "left": left,
+                "center": center,
+                "right": right
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_three_row_layout(
+        self,
+        top: Optional[ComponentInstance] = None,
+        middle: Optional[ComponentInstance] = None,
+        bottom: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        top_height: int = 33,
+        middle_height: int = 34,
+        bottom_height: int = 33,
+        gap: int = 20,
+        padding: int = 40,
+        border_width: Optional[int] = None
+    ) -> 'CompositionBuilder':
+        """Add ThreeRowLayout to composition."""
+        component = ComponentInstance(
+            component_type="ThreeRowLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "top_height": top_height,
+                "middle_height": middle_height,
+                "bottom_height": bottom_height,
+                "gap": gap,
+                "padding": padding,
+                "border_width": border_width,
+                "top": top,
+                "middle": middle,
+                "bottom": bottom
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_asymmetric_layout(
+        self,
+        main_feed: Optional[ComponentInstance] = None,
+        demo1: Optional[ComponentInstance] = None,
+        demo2: Optional[ComponentInstance] = None,
+        overlay: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        layout: str = "main-right",
+        main_ratio: int = 67,
+        padding: int = 40,
+        gap: int = 20,
+        border_width: Optional[int] = None
+    ) -> 'CompositionBuilder':
+        """Add AsymmetricLayout to composition."""
+        component = ComponentInstance(
+            component_type="AsymmetricLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "layout": layout,
+                "main_ratio": main_ratio,
+                "padding": padding,
+                "gap": gap,
+                "border_width": border_width,
+                "mainFeed": main_feed,
+                "demo1": demo1,
+                "demo2": demo2,
+                "overlay": overlay
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_pip_layout(
+        self,
+        main_content: Optional[ComponentInstance] = None,
+        pip_content: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        pip_position: str = "bottom-right",
+        pip_size: int = 20,
+        pip_border_width: int = 2,
+        padding: int = 20
+    ) -> 'CompositionBuilder':
+        """Add PiPLayout to composition."""
+        component = ComponentInstance(
+            component_type="PiPLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "pip_position": pip_position,
+                "pip_size": pip_size,
+                "pip_border_width": pip_border_width,
+                "padding": padding,
+                "mainContent": main_content,
+                "pipContent": pip_content
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_vertical_layout(
+        self,
+        top_content: Optional[ComponentInstance] = None,
+        bottom_content: Optional[ComponentInstance] = None,
+        caption_bar: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        layout: str = "top-bottom",
+        content_ratio: int = 70,
+        gap: int = 10,
+        padding: int = 20
+    ) -> 'CompositionBuilder':
+        """Add VerticalLayout to composition."""
+        component = ComponentInstance(
+            component_type="VerticalLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "layout": layout,
+                "content_ratio": content_ratio,
+                "gap": gap,
+                "padding": padding,
+                "topContent": top_content,
+                "bottomContent": bottom_content,
+                "captionBar": caption_bar
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_timeline_layout(
+        self,
+        main_content: Optional[ComponentInstance] = None,
+        milestones: Optional[List[ComponentInstance]] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        timeline_height: int = 15,
+        timeline_position: str = "bottom",
+        show_progress: bool = True,
+        padding: int = 20
+    ) -> 'CompositionBuilder':
+        """Add TimelineLayout to composition."""
+        component = ComponentInstance(
+            component_type="TimelineLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "timeline_height": timeline_height,
+                "timeline_position": timeline_position,
+                "show_progress": show_progress,
+                "padding": padding,
+                "mainContent": main_content,
+                "milestones": milestones or []
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_mosaic_layout(
+        self,
+        clips: List[ComponentInstance],
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        style: str = "hero-corners",
+        gap: int = 15,
+        border_width: int = 2,
+        padding: int = 20
+    ) -> 'CompositionBuilder':
+        """Add MosaicLayout to composition."""
+        component = ComponentInstance(
+            component_type="MosaicLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "style": style,
+                "gap": gap,
+                "border_width": border_width,
+                "padding": padding,
+                "clips": clips
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_container_layout(
+        self,
+        content: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        padding: int = 80,
+        border_width: int = 2,
+        border_radius: int = 8,
+        border_color: str = "rgba(255,255,255,0.2)"
+    ) -> 'CompositionBuilder':
+        """Add Container layout to composition."""
+        component = ComponentInstance(
+            component_type="Container",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "padding": padding,
+                "border_width": border_width,
+                "border_radius": border_radius,
+                "border_color": border_color,
+                "content": content
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_grid_layout(
+        self,
+        children: List[ComponentInstance],
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        layout: str = "2x2",
+        padding: int = 40,
+        gap: int = 20,
+        border_width: Optional[int] = None
+    ) -> 'CompositionBuilder':
+        """Add Grid layout (alias for add_grid)."""
+        return self.add_grid(
+            child_components=children,
+            start_time=start_time,
+            duration=duration,
+            layout=layout,
+            gap=gap,
+            padding=padding
+        )
+
+    def add_split_screen_layout(
+        self,
+        left_panel: Optional[ComponentInstance] = None,
+        right_panel: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        orientation: str = "horizontal",
+        gap: int = 20,
+        divider_width: int = 3
+    ) -> 'CompositionBuilder':
+        """Add SplitScreen layout (alias for add_split_screen)."""
+        return self.add_split_screen(
+            left_panel=left_panel,
+            right_panel=right_panel,
+            start_time=start_time,
+            duration=duration,
+            orientation=orientation,
+            gap=gap,
+            divider_width=divider_width
+        )
 
     def _get_next_start_frame(self) -> int:
         """Get the start frame for the next sequential component."""
@@ -716,8 +1006,10 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
             # Check for nested children
             layout_types = [
                 'Grid', 'Container', 'SplitScreen',
+                'ThreeColumnLayout', 'ThreeRowLayout', 'ThreeByThreeGrid', 'AsymmetricLayout',
                 'OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout',
-                'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout'
+                'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout',
+                'PiPLayout', 'VerticalLayout', 'TimelineLayout', 'MosaicLayout'
             ]
 
             if comp.component_type in layout_types:
@@ -729,20 +1021,26 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
                 elif isinstance(children, ComponentInstance):
                     collect_types(children)
 
-                # For SplitScreen
-                for key in ['left', 'right', 'top', 'bottom']:
+                # For SplitScreen and ThreeColumn/ThreeRow layouts
+                for key in ['left', 'right', 'top', 'bottom', 'center', 'middle']:
                     child = comp.props.get(key)
                     if isinstance(child, ComponentInstance):
                         collect_types(child)
 
                 # For specialized layouts
                 specialized_keys = [
+                    'mainFeed', 'demo1', 'demo2', 'overlay',  # AsymmetricLayout
                     'hostView', 'screenContent',  # OverTheShoulder
                     'characterA', 'characterB',  # DialogueFrame
                     'originalClip', 'reactorFace',  # StackedReaction
                     'gameplay', 'webcam', 'chatOverlay',  # HUDStyle
                     'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCam
-                    'hostStrip', 'backgroundContent'  # FocusStrip
+                    'hostStrip', 'backgroundContent',  # FocusStrip
+                    'mainContent', 'pipContent',  # PiPLayout
+                    'topContent', 'bottomContent', 'captionBar',  # VerticalLayout
+                    'milestones', 'clips',  # TimelineLayout, MosaicLayout
+                    'content',  # Container
+                    'leftPanel', 'rightPanel', 'topPanel', 'bottomPanel'  # SplitScreen
                 ]
                 for key in specialized_keys:
                     child = comp.props.get(key)
@@ -759,8 +1057,10 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
         nested = set()
         layout_types = [
             'Grid', 'Container', 'SplitScreen',
+            'ThreeColumnLayout', 'ThreeRowLayout', 'ThreeByThreeGrid', 'AsymmetricLayout',
             'OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout',
-            'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout'
+            'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout',
+            'PiPLayout', 'VerticalLayout', 'TimelineLayout', 'MosaicLayout'
         ]
 
         for comp in components:
@@ -774,20 +1074,26 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
                 elif isinstance(children, ComponentInstance):
                     nested.add(id(children))
 
-                # For SplitScreen, check left/right/top/bottom
-                for key in ['left', 'right', 'top', 'bottom']:
+                # For SplitScreen and ThreeColumn/ThreeRow layouts
+                for key in ['left', 'right', 'top', 'bottom', 'center', 'middle']:
                     child = comp.props.get(key)
                     if isinstance(child, ComponentInstance):
                         nested.add(id(child))
 
                 # For specialized layouts
                 specialized_keys = [
+                    'mainFeed', 'demo1', 'demo2', 'overlay',  # AsymmetricLayout
                     'hostView', 'screenContent',  # OverTheShoulder
                     'characterA', 'characterB',  # DialogueFrame
                     'originalClip', 'reactorFace',  # StackedReaction
                     'gameplay', 'webcam', 'chatOverlay',  # HUDStyle
                     'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCam
-                    'hostStrip', 'backgroundContent'  # FocusStrip
+                    'hostStrip', 'backgroundContent',  # FocusStrip
+                    'mainContent', 'pipContent',  # PiPLayout
+                    'topContent', 'bottomContent', 'captionBar',  # VerticalLayout
+                    'milestones', 'clips',  # TimelineLayout, MosaicLayout
+                    'content',  # Container
+                    'leftPanel', 'rightPanel', 'topPanel', 'bottomPanel'  # SplitScreen
                 ]
                 for key in specialized_keys:
                     child = comp.props.get(key)
@@ -802,8 +1108,10 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
         # Check if this is a layout component with children
         layout_types = [
             'Grid', 'Container', 'SplitScreen',
+            'ThreeColumnLayout', 'ThreeRowLayout', 'ThreeByThreeGrid', 'AsymmetricLayout',
             'OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout',
-            'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout'
+            'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout',
+            'PiPLayout', 'VerticalLayout', 'TimelineLayout', 'MosaicLayout'
         ]
         has_children = comp.component_type in layout_types
 
@@ -842,13 +1150,19 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
         # Format non-children props
         # Exclude child component props from regular props
         exclude_keys = [
-            'children', 'left', 'right', 'top', 'bottom',
+            'children', 'left', 'right', 'top', 'bottom', 'center', 'middle',
+            'mainFeed', 'demo1', 'demo2', 'overlay',  # AsymmetricLayout
             'hostView', 'screenContent',  # OverTheShoulder
             'characterA', 'characterB',  # DialogueFrame
             'originalClip', 'reactorFace',  # StackedReaction
             'gameplay', 'webcam', 'chatOverlay',  # HUDStyle
-            'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCam
-            'hostStrip', 'backgroundContent'  # FocusStrip
+            'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCamLayout
+            'hostStrip', 'backgroundContent',  # FocusStrip
+            'mainContent', 'pipContent',  # PiPLayout
+            'topContent', 'bottomContent', 'captionBar',  # VerticalLayout
+            'milestones', 'clips',  # TimelineLayout, MosaicLayout
+            'content',  # Container
+            'leftPanel', 'rightPanel', 'topPanel', 'bottomPanel'  # SplitScreen
         ]
         props_lines = []
         for key, value in comp.props.items():
@@ -975,8 +1289,8 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
 {spaces}  }}
 {spaces}/>"""
 
-        # Handle specialized layouts (OverTheShoulder, DialogueFrame, etc.)
-        elif comp.component_type in ['OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout', 'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout']:
+        # Handle specialized layouts (OverTheShoulder, DialogueFrame, ThreeColumn, ThreeRow, Asymmetric, etc.)
+        elif comp.component_type in ['OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout', 'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout', 'ThreeColumnLayout', 'ThreeRowLayout', 'AsymmetricLayout', 'ThreeByThreeGrid', 'PiPLayout', 'VerticalLayout', 'TimelineLayout', 'MosaicLayout']:
             # Map layout types to their prop keys
             layout_prop_keys = {
                 'OverTheShoulderLayout': ['hostView', 'screenContent'],
@@ -984,7 +1298,15 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
                 'StackedReactionLayout': ['originalClip', 'reactorFace'],
                 'HUDStyleLayout': ['gameplay', 'webcam', 'chatOverlay'],
                 'PerformanceMultiCamLayout': ['frontCam', 'overheadCam', 'handCam', 'detailCam'],
-                'FocusStripLayout': ['hostStrip', 'backgroundContent']
+                'FocusStripLayout': ['hostStrip', 'backgroundContent'],
+                'ThreeColumnLayout': ['left', 'center', 'right'],
+                'ThreeRowLayout': ['top', 'middle', 'bottom'],
+                'AsymmetricLayout': ['mainFeed', 'demo1', 'demo2', 'overlay'],
+                'ThreeByThreeGrid': ['children'],
+                'PiPLayout': ['mainContent', 'pipContent'],
+                'VerticalLayout': ['topContent', 'bottomContent', 'captionBar'],
+                'TimelineLayout': ['mainContent', 'milestones'],
+                'MosaicLayout': ['children']
             }
 
             prop_keys = layout_prop_keys.get(comp.component_type, [])
@@ -995,8 +1317,18 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
                 if isinstance(child, ComponentInstance):
                     child_jsx = self._render_component_jsx(child, indent + 4)
                     child_props.append(f"{spaces}  {key}={{\n{child_jsx}\n{spaces}  }}")
+                elif isinstance(child, list) and key == 'children':
+                    # Handle array of children (e.g., ThreeByThreeGrid)
+                    children_jsx = []
+                    for child_item in child:
+                        if isinstance(child_item, ComponentInstance):
+                            child_jsx = self._render_component_jsx(child_item, indent + 4)
+                            children_jsx.append(child_jsx)
+                    children_str = ",\n".join(children_jsx)
+                    child_props.append(f"{spaces}  {key}={{[\n{children_str}\n{spaces}  ]}}")
                 elif child is None:
-                    child_props.append(f"{spaces}  {key}={{undefined}}")
+                    # Only add undefined for optional child props
+                    pass  # Don't render undefined props
 
             children_str = "\n".join(child_props)
 

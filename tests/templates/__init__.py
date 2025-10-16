@@ -1,0 +1,3 @@
+"""
+Component template tests package.
+"""

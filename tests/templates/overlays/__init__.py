@@ -1,0 +1,3 @@
+"""
+Overlay component template tests.
+"""

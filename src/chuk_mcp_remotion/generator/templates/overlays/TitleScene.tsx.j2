@@ -2,104 +2,163 @@ import React from 'react';
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 
 interface TitleSceneProps {
-  text: string;
+  title: string;
   subtitle?: string;
+  startFrame: number;
+  durationInFrames: number;
+  variant?: string;
+  animation?: string;
 }
 
-export const TitleScene: React.FC<TitleSceneProps> = ({ text, subtitle }) => {
+export const TitleScene: React.FC<TitleSceneProps> = ({
+  title,
+  subtitle,
+  startFrame,
+  durationInFrames,
+  variant = 'bold',
+  animation = 'fade'
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const relativeFrame = frame - startFrame;
 
-  // Animation based on variant
-  [% if config.animation == 'fade_zoom' %]
-  // Fade + Zoom animation
-  const progress = spring({
-    frame,
-    fps,
-    config: {
-      damping: [[ motion.default_spring.config.damping ]],
-      mass: [[ motion.default_spring.config.mass ]],
-      stiffness: [[ motion.default_spring.config.stiffness ]]
+  // Don't render if outside the time range
+  if (frame < startFrame || frame >= startFrame + durationInFrames) {
+    return null;
+  }
+
+  // Animation logic
+  let opacity = 1;
+  let transform = 'none';
+  let filter = 'none';
+  let displayText = title;
+
+  if (animation === 'fade_zoom') {
+    // Fade + Zoom animation
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: {
+        damping: [[ motion.default_spring.config.damping ]],
+        mass: [[ motion.default_spring.config.mass ]],
+        stiffness: [[ motion.default_spring.config.stiffness ]]
+      }
+    });
+    opacity = interpolate(progress, [0, 1], [0, 1]);
+    const scale = interpolate(progress, [0, 1], [0.8, 1]);
+    transform = `scale(${scale})`;
+  } else if (animation === 'slide_up') {
+    // Slide up animation
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: {
+        damping: [[ motion.default_spring.config.damping ]],
+        mass: [[ motion.default_spring.config.mass ]],
+        stiffness: [[ motion.default_spring.config.stiffness ]]
+      }
+    });
+    opacity = interpolate(progress, [0, 1], [0, 1]);
+    const translateY = interpolate(progress, [0, 1], [100, 0]);
+    transform = `translateY(${translateY}px)`;
+  } else if (animation === 'typewriter') {
+    // Typewriter animation
+    const charsToShow = Math.floor(interpolate(relativeFrame, [0, 60], [0, title.length], {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
+    }));
+    displayText = title.slice(0, charsToShow);
+    opacity = 1;
+  } else if (animation === 'blur_in') {
+    // Blur to focus animation
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: { damping: 150, mass: 0.5, stiffness: 150 }
+    });
+    opacity = interpolate(progress, [0, 1], [0, 1]);
+    const blur = interpolate(progress, [0, 1], [20, 0]);
+    filter = `blur(${blur}px)`;
+  } else if (animation === 'fade_slide') {
+    // Fade + Slide animation
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: {
+        damping: [[ motion.default_spring.config.damping ]],
+        mass: [[ motion.default_spring.config.mass ]],
+        stiffness: [[ motion.default_spring.config.stiffness ]]
+      }
+    });
+    opacity = interpolate(progress, [0, 1], [0, 1]);
+    const translateX = interpolate(progress, [0, 1], [-50, 0]);
+    transform = `translateX(${translateX}px)`;
+  } else if (animation === 'zoom') {
+    // Zoom animation
+    const progress = spring({
+      frame: relativeFrame,
+      fps,
+      config: {
+        damping: [[ motion.default_spring.config.damping ]],
+        mass: [[ motion.default_spring.config.mass ]],
+        stiffness: [[ motion.default_spring.config.stiffness ]]
+      }
+    });
+    opacity = interpolate(progress, [0, 1], [0, 1]);
+    const scale = interpolate(progress, [0, 1], [1.2, 1]);
+    transform = `scale(${scale})`;
+  } else {
+    // Default: fade in
+    opacity = interpolate(relativeFrame, [0, 20], [0, 1], {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
+    });
+  }
+
+  // Fade out at the end
+  const fadeOutStart = durationInFrames - 20;
+  const fadeOut = interpolate(
+    relativeFrame,
+    [fadeOutStart, durationInFrames],
+    [1, 0],
+    {
+      extrapolateLeft: 'clamp',
+      extrapolateRight: 'clamp'
     }
-  });
+  );
 
-  const opacity = interpolate(progress, [0, 1], [0, 1]);
-  const scale = interpolate(progress, [0, 1], [0.8, 1]);
-  const transform = `scale(${scale})`;
+  const finalOpacity = opacity * fadeOut;
 
-  [% elif config.animation == 'slide_up' %]
-  // Slide up animation
-  const progress = spring({
-    frame,
-    fps,
-    config: {
-      damping: 200,
-      mass: 0.5,
-      stiffness: 200
-    }
-  });
-
-  const opacity = interpolate(progress, [0, 1], [0, 1]);
-  const translateY = interpolate(progress, [0, 1], [100, 0]);
-  const transform = `translateY(${translateY}px)`;
-
-  [% elif config.animation == 'typewriter' %]
-  // Typewriter animation
-  const charsToShow = Math.floor(interpolate(frame, [0, 60], [0, text.length], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  }));
-  const displayText = text.slice(0, charsToShow);
-  const opacity = 1;
-  const transform = 'none';
-
-  [% elif config.animation == 'blur_in' %]
-  // Blur to focus animation
-  const progress = spring({
-    frame,
-    fps,
-    config: { damping: 150, mass: 0.5, stiffness: 150 }
-  });
-
-  const opacity = interpolate(progress, [0, 1], [0, 1]);
-  const blur = interpolate(progress, [0, 1], [20, 0]);
-  const transform = 'none';
-  const filter = `blur(${blur}px)`;
-
-  [% else %]
-  // Default: fade in
-  const opacity = interpolate(frame, [0, 20], [0, 1], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp'
-  });
-  const transform = 'none';
-  [% endif %]
-
-  // Variant styles
-  const variants = {
+  // Variant styles using theme tokens
+  const variants: Record<string, any> = {
     minimal: {
       background: '[[ colors.background.light ]]',
       textColor: '[[ colors.text.on_light ]]',
       accentColor: '[[ colors.primary[0] ]]'
     },
     standard: {
-      background: `linear-gradient(135deg, [[ colors.background.dark ]] 0%, [[ colors.primary[2] ]] 100%)`,
+      background: '[[ colors.gradient.primary_to_secondary ]]',
       textColor: '[[ colors.text.on_dark ]]',
       accentColor: '[[ colors.accent[0] ]]'
     },
     bold: {
-      background: `[[ colors.gradient ]]`,
+      background: '[[ colors.gradient.bold ]]',
       textColor: '[[ colors.text.on_dark ]]',
-      accentColor: '#FFFFFF'
+      accentColor: '[[ colors.text.on_dark ]]'
     },
     kinetic: {
       background: '[[ colors.background.dark ]]',
       textColor: '[[ colors.text.on_dark ]]',
       accentColor: '[[ colors.accent[0] ]]'
+    },
+    glass: {
+      background: '[[ colors.background.glass ]]',
+      textColor: '[[ colors.text.on_dark ]]',
+      accentColor: '[[ colors.accent[0] ]]'
     }
   };
 
-  const variantStyle = variants['[[ config.variant ]]'] || variants.bold;
+  const variantStyle = variants[variant] || variants.bold;
 
   return (
     <AbsoluteFill
@@ -115,48 +174,40 @@ export const TitleScene: React.FC<TitleSceneProps> = ({ text, subtitle }) => {
     >
       <div
         style={{
-          opacity,
+          opacity: finalOpacity,
           transform,
-          [% if config.animation == 'blur_in' %]
-          filter: filter,
-          [% endif %]
+          filter,
           textAlign: 'center'
         }}
       >
         <h1
           style={{
-            fontSize: [% if config.variant == 'bold' %]120[% else %]96[% endif %],
-            fontWeight: [% if config.variant == 'kinetic' %]900[% else %]700[% endif %],
+            fontSize: variant === 'bold' ? 120 : 96,
+            fontWeight: variant === 'kinetic' ? 900 : 700,
             color: variantStyle.textColor,
             margin: 0,
             lineHeight: 1.1,
             letterSpacing: '-0.02em',
-            [% if config.variant == 'kinetic' %]
-            textTransform: 'uppercase',
-            [% endif %]
+            textTransform: variant === 'kinetic' ? 'uppercase' : 'none',
             maxWidth: 1200
           }}
         >
-          [% if config.animation == 'typewriter' %]
           {displayText}
-          [% else %]
-          [[ config.text ]]
-          [% endif %]
         </h1>
-        [% if config.subtitle %]
-        <p
-          style={{
-            fontSize: 48,
-            fontWeight: 500,
-            color: variantStyle.accentColor,
-            margin: '32px 0 0 0',
-            lineHeight: 1.3,
-            maxWidth: 900
-          }}
-        >
-          [[ config.subtitle ]]
-        </p>
-        [% endif %]
+        {subtitle && (
+          <p
+            style={{
+              fontSize: 48,
+              fontWeight: 500,
+              color: variantStyle.accentColor,
+              margin: '32px 0 0 0',
+              lineHeight: 1.3,
+              maxWidth: 900
+            }}
+          >
+            {subtitle}
+          </p>
+        )}
       </div>
     </AbsoluteFill>
   );

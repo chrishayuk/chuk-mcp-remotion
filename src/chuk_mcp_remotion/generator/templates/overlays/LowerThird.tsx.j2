@@ -6,13 +6,17 @@ interface LowerThirdProps {
   title?: string;
   startFrame: number;
   durationInFrames: number;
+  variant?: string;
+  position?: string;
 }
 
 export const LowerThird: React.FC<LowerThirdProps> = ({
   name,
   title,
   startFrame,
-  durationInFrames
+  durationInFrames,
+  variant = 'glass',
+  position = 'bottom_left'
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -53,21 +57,22 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
 
   const finalOpacity = Math.min(opacity, fadeOut);
 
-  // Position based on config
-  const positions = {
+  // Position based on runtime prop
+  const positions: Record<string, any> = {
     bottom_left: { bottom: 40, left: interpolate(slideIn, [0, 1], [-400, 40]) },
     bottom_center: { bottom: 40, left: '50%', transform: `translateX(-50%) translateX(${interpolate(slideIn, [0, 1], [-400, 0])}px)` },
     bottom_right: { bottom: 40, right: interpolate(slideIn, [0, 1], [-400, 40]) },
     top_left: { top: 40, left: interpolate(slideIn, [0, 1], [-400, 40]) },
-    top_center: { top: 40, left: '50%', transform: `translateX(-50%) translateX(${interpolate(slideIn, [0, 1], [-400, 0])}px)` }
+    top_center: { top: 40, left: '50%', transform: `translateX(-50%) translateX(${interpolate(slideIn, [0, 1], [-400, 0])}px)` },
+    top_right: { top: 40, right: interpolate(slideIn, [0, 1], [-400, 40]) }
   };
 
-  const position = positions['[[ config.position ]]'] || positions.bottom_left;
+  const positionStyle = positions[position] || positions.bottom_left;
 
-  // Variant styles
-  const variants = {
+  // Variant styles using theme tokens
+  const variants: Record<string, any> = {
     minimal: {
-      background: 'rgba(0, 0, 0, 0.6)',
+      background: '[[ colors.background.dark ]]',
       backdropFilter: 'none',
       padding: '16px 24px',
       borderRadius: 8
@@ -103,14 +108,14 @@ export const LowerThird: React.FC<LowerThirdProps> = ({
     }
   };
 
-  const variantStyle = variants['[[ config.variant ]]'] || variants.glass;
+  const variantStyle = variants[variant] || variants.glass;
 
   return (
     <AbsoluteFill style={{ pointerEvents: 'none' }}>
       <div
         style={{
           position: 'absolute',
-          ...position,
+          ...positionStyle,
           ...variantStyle,
           opacity: finalOpacity,
           fontFamily: "'[[ "', '".join(typography.body_font.fonts) ]]'"

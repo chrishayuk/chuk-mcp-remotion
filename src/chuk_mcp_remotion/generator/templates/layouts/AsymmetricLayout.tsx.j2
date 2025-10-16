@@ -8,12 +8,21 @@ interface AsymmetricLayoutProps {
   overlay?: React.ReactNode;
   startFrame: number;
   durationInFrames: number;
+  layout?: string;
+  main_ratio?: number;
+  padding?: number;
+  gap?: number;
+  border_width?: number;
+  border_color?: string;
+  border_radius?: number;
+  main_background?: string;
+  demo_background?: string;
 }
 
 /**
  * AsymmetricLayout - Perfect for YouTube tutorials
  *
- * Layouts available via config.layout:
+ * Layouts available via layout prop:
  * - "main-right" (default): Demo panels on left (stacked), main feed on right (2/3 width)
  * - "main-left": Main feed on left (2/3 width), demo panels on right (stacked)
  * - "main-bottom": Demo panels on top (side by side), main feed on bottom (2/3 height)
@@ -25,7 +34,16 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
   demo2,
   overlay,
   startFrame,
-  durationInFrames
+  durationInFrames,
+  layout = 'main-right',
+  main_ratio = 66.67,
+  padding = 40,
+  gap = 20,
+  border_width,
+  border_color = 'rgba(255, 255, 255, 0.2)',
+  border_radius = 8,
+  main_background,
+  demo_background
 }) => {
   const frame = useCurrentFrame();
   const relativeFrame = frame - startFrame;
@@ -35,51 +53,40 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
     return null;
   }
 
-  const layout = '[[ config.layout or "main-right" ]]';
-  const mainRatio = [[ config.main_ratio or 66.67 ]]; // Main feed takes 2/3 by default
-  const demoRatio = 100 - mainRatio;
+  const demoRatio = 100 - main_ratio;
 
   const renderMainRight = () => (
     <div
       style={{
         position: 'absolute',
-        [% if config.padding %]
-        top: [[ config.padding ]],
-        left: [[ config.padding ]],
-        right: [[ config.padding ]],
-        bottom: [[ config.padding ]],
-        [% else %]
-        top: 40,
-        left: 40,
-        right: 40,
-        bottom: 40,
-        [% endif %]
+        top: padding,
+        left: padding,
+        right: padding,
+        bottom: padding,
         display: 'flex',
         flexDirection: 'row',
-        gap: [[ config.gap or 20 ]],
+        gap: gap,
       }}
     >
       {/* Demo panels (left side, stacked) */}
       <div
         style={{
-          flex: `0 0 calc(${demoRatio}% - [[ (config.gap or 20) / 2 ]]px)`,
+          flex: `0 0 calc(${demoRatio}% - ${gap / 2}px)`,
           display: 'flex',
           flexDirection: 'column',
-          gap: [[ config.gap or 20 ]],
+          gap: gap,
         }}
       >
         <div
           style={{
             flex: '1 1 50%',
-            [% if config.border_width %]
-            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
-            borderRadius: [[ config.border_radius or 8 ]],
-            [% endif %]
+            ...(border_width && {
+              border: `${border_width}px solid ${border_color}`,
+              borderRadius: border_radius
+            }),
             overflow: 'hidden',
             position: 'relative',
-            [% if config.demo_background %]
-            background: '[[ config.demo_background ]]',
-            [% endif %]
+            ...(demo_background && { background: demo_background }),
           }}
         >
           {demo1}
@@ -87,15 +94,13 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
         <div
           style={{
             flex: '1 1 50%',
-            [% if config.border_width %]
-            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
-            borderRadius: [[ config.border_radius or 8 ]],
-            [% endif %]
+            ...(border_width && {
+              border: `${border_width}px solid ${border_color}`,
+              borderRadius: border_radius
+            }),
             overflow: 'hidden',
             position: 'relative',
-            [% if config.demo_background %]
-            background: '[[ config.demo_background ]]',
-            [% endif %]
+            ...(demo_background && { background: demo_background }),
           }}
         >
           {demo2}
@@ -105,16 +110,14 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
       {/* Main feed (right side) */}
       <div
         style={{
-          flex: `0 0 calc(${mainRatio}% - [[ (config.gap or 20) / 2 ]]px)`,
-          [% if config.border_width %]
-          border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or "rgba(255, 255, 255, 0.2)" ]]',
-          borderRadius: [[ config.border_radius or 8 ]],
-          [% endif %]
+          flex: `0 0 calc(${main_ratio}% - ${gap / 2}px)`,
+          ...(border_width && {
+            border: `${border_width}px solid ${border_color}`,
+            borderRadius: border_radius
+          }),
           overflow: 'hidden',
           position: 'relative',
-          [% if config.main_background %]
-          background: '[[ config.main_background ]]',
-          [% endif %]
+          ...(main_background && { background: main_background }),
         }}
       >
         {mainFeed}
@@ -126,35 +129,26 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
     <div
       style={{
         position: 'absolute',
-        [% if config.padding %]
-        top: [[ config.padding ]],
-        left: [[ config.padding ]],
-        right: [[ config.padding ]],
-        bottom: [[ config.padding ]],
-        [% else %]
-        top: 40,
-        left: 40,
-        right: 40,
-        bottom: 40,
-        [% endif %]
+        top: padding,
+        left: padding,
+        right: padding,
+        bottom: padding,
         display: 'flex',
         flexDirection: 'row',
-        gap: [[ config.gap or 20 ]],
+        gap: gap,
       }}
     >
       {/* Main feed (left side) */}
       <div
         style={{
-          flex: `0 0 calc(${mainRatio}% - [[ (config.gap or 20) / 2 ]]px)`,
-          [% if config.border_width %]
-          border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or "rgba(255, 255, 255, 0.2)" ]]',
-          borderRadius: [[ config.border_radius or 8 ]],
-          [% endif %]
+          flex: `0 0 calc(${main_ratio}% - ${gap / 2}px)`,
+          ...(border_width && {
+            border: `${border_width}px solid ${border_color}`,
+            borderRadius: border_radius
+          }),
           overflow: 'hidden',
           position: 'relative',
-          [% if config.main_background %]
-          background: '[[ config.main_background ]]',
-          [% endif %]
+          ...(main_background && { background: main_background }),
         }}
       >
         {mainFeed}
@@ -163,24 +157,22 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
       {/* Demo panels (right side, stacked) */}
       <div
         style={{
-          flex: `0 0 calc(${demoRatio}% - [[ (config.gap or 20) / 2 ]]px)`,
+          flex: `0 0 calc(${demoRatio}% - ${gap / 2}px)`,
           display: 'flex',
           flexDirection: 'column',
-          gap: [[ config.gap or 20 ]],
+          gap: gap,
         }}
       >
         <div
           style={{
             flex: '1 1 50%',
-            [% if config.border_width %]
-            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
-            borderRadius: [[ config.border_radius or 8 ]],
-            [% endif %]
+            ...(border_width && {
+              border: `${border_width}px solid ${border_color}`,
+              borderRadius: border_radius
+            }),
             overflow: 'hidden',
             position: 'relative',
-            [% if config.demo_background %]
-            background: '[[ config.demo_background ]]',
-            [% endif %]
+            ...(demo_background && { background: demo_background }),
           }}
         >
           {demo1}
@@ -188,15 +180,13 @@ export const AsymmetricLayout: React.FC<AsymmetricLayoutProps> = ({
         <div
           style={{
             flex: '1 1 50%',
-            [% if config.border_width %]
-            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
-            borderRadius: [[ config.border_radius or 8 ]],
-            [% endif %]
+            ...(border_width && {
+              border: `${border_width}px solid ${border_color}`,
+              borderRadius: border_radius
+            }),
             overflow: 'hidden',
             position: 'relative',
-            [% if config.demo_background %]
-            background: '[[ config.demo_background ]]',
-            [% endif %]
+            ...(demo_background && { background: demo_background }),
           }}
         >
           {demo2}

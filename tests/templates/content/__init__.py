@@ -1,0 +1,3 @@
+"""
+Content component template tests.
+"""
