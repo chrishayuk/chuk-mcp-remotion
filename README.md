@@ -34,8 +34,10 @@ Design Tokens → Components → Variants → Themes
 
 2. **Component Registry**: 20+ video components
    - **Scenes**: TitleScene, EndScreen
+   - **Layouts**: AsymmetricLayout, ThreeColumnLayout, ThreeRowLayout, ThreeByThreeGrid, Grid, SplitScreen
    - **Overlays**: LowerThird, TextOverlay, SubscribeButton
    - **Charts**: LineChart, Counter
+   - **Code**: CodeBlock, TypingCode
    - **Animations**: Pre-built animation presets
 
 3. **Themes**: Complete design systems
@@ -74,6 +76,38 @@ The server generates Remotion projects, so you'll need Remotion installed:
 ```bash
 # Remotion will be installed per-project
 # The MCP server handles this automatically
+```
+
+## Examples
+
+### YouTube Layouts Showcase
+
+See all available layouts in action:
+
+```bash
+python examples/youtube_layouts.py
+```
+
+This creates a 32-second showcase demonstrating:
+- 3x3 Grid Layout
+- 3 Column Layout (custom widths)
+- 3 Row Layout (custom heights)
+- Asymmetric Layouts (main + demo panels)
+- Bordered layouts with mixed content
+
+[**Full YouTube Layouts Guide →**](docs/YOUTUBE_LAYOUTS.md)
+
+### More Examples
+
+```bash
+# Explore design system
+python examples/explore_design_system.py
+
+# Data visualization
+python examples/data_visualization_overlay.py
+
+# Code display
+python examples/code_display.py
 ```
 
 ## Quick Start
@@ -170,6 +204,73 @@ Animated text for emphasis
 #### SubscribeButton
 Animated subscribe button
 - **Animations**: bounce, glow, pulse, slide, wiggle
+
+### Layouts
+
+**NEW!** Complete coverage of all 10 common YouTube layout patterns! Perfect for tutorials, showcases, reactions, and more.
+
+#### AsymmetricLayout
+Perfect for tutorials! Main feed + demo panels.
+- **Variants**: main-right (default), main-left, main-bottom, main-top
+- **Features**:
+  - Main content (2/3 screen)
+  - Two demo panels (1/3 screen, stacked)
+  - Optional overlay support
+  - Border and styling controls
+
+```python
+{
+    "type": "AsymmetricLayout",
+    "config": {
+        "layout": "main-right",
+        "border_width": 2
+    },
+    "mainFeed": {"type": "TypingCode", ...},
+    "demo1": {"type": "CodeBlock", ...},
+    "demo2": {"type": "CodeBlock", ...},
+    "overlay": {"type": "LowerThird", ...}
+}
+```
+
+#### ThreeColumnLayout
+Sidebar + Main + Sidebar arrangements
+- **Configurable widths** (e.g., 25-50-25, 30-40-30)
+- **Use cases**: Side-by-side comparisons, dashboards
+
+#### ThreeRowLayout
+Header + Main + Footer arrangements
+- **Configurable heights** (e.g., 20-60-20, 15-70-15)
+- **Use cases**: Intro + content + CTA
+
+#### ThreeByThreeGrid
+Perfect 3x3 grid (9 cells)
+- **Use cases**: Feature showcases, comparison matrices
+
+#### Grid (Flexible)
+Multi-layout grid system
+- **Layouts**: 1x2, 2x1, 2x2, 3x2, 2x3, 3x3, 4x2, 2x4
+
+#### PiPLayout ⭐ NEW
+Picture-in-picture with webcam overlay
+- **Positions**: bottom-right, bottom-left, top-right, top-left
+- **Use cases**: Commentary videos, reaction streams
+
+#### VerticalLayout ⭐ NEW
+Optimized for 9:16 Shorts/TikTok/Reels
+- **Layouts**: top-bottom, caption-content, content-caption, split-vertical
+- **Use cases**: YouTube Shorts, TikTok, Instagram Reels
+
+#### MosaicLayout ⭐ NEW
+Irregular collage with layered clips
+- **Styles**: hero-corners, stacked, spotlight
+- **Use cases**: Montages, highlight reels, creative intros
+
+#### TimelineLayout ⭐ NEW
+Progress/timeline overlay with milestones
+- **Features**: Progress bar, milestone markers, position indicators
+- **Use cases**: Educational explainers, progression videos
+
+**📚 All 10 YouTube Layout Patterns:** See [Complete Layouts Guide](docs/ALL_YOUTUBE_LAYOUTS.md) for the full coverage matrix.
 
 ### Charts & Data
 
@@ -276,13 +377,22 @@ chuk-mcp-remotion/
 │   │   └── components.py     # Component definitions
 │   ├── themes/               # Theme system
 │   │   └── youtube_themes.py # YouTube-optimized themes
-│   ├── variants/             # Variant system (cva-style)
 │   ├── generator/            # TSX generation
+│   │   ├── templates/        # Organized template library
+│   │   │   ├── layouts/     # Layout components
+│   │   │   ├── overlays/    # Overlay components
+│   │   │   ├── effects/     # Effects
+│   │   │   └── content/     # Content components
+│   │   ├── component_builder.py
+│   │   └── composition_builder.py
 │   ├── renderer/             # Remotion rendering
 │   └── utils/                # Utilities
+├── docs/                     # Documentation
+│   └── YOUTUBE_LAYOUTS.md   # Layout guide
 ├── examples/                 # Example videos
+│   └── youtube_layouts.py   # Layout showcase
 ├── tests/                    # Tests
-└── remotion-templates/       # Remotion project templates
+└── remotion-projects/        # Generated projects
 ```
 
 ### Running Tests
@@ -306,17 +416,20 @@ mypy src
 
 ## Roadmap
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation ✅
 - ✅ Design token system (colors, typography, motion)
-- ✅ Component registry with 7+ core components
+- ✅ Component registry with 20+ core components
 - ✅ 7 YouTube-optimized themes
 - ✅ Discovery tools for LLMs
+- ✅ Professional layout system (grids, columns, asymmetric)
+- ✅ Organized template structure
 
-### Phase 2: Generation (Next)
-- 🔲 TSX component generation
-- 🔲 Remotion project scaffolding
-- 🔲 Composition builder
+### Phase 2: Generation ⚡ (Current)
+- ✅ TSX component generation
+- ✅ Remotion project scaffolding
+- ✅ Composition builder
 - 🔲 Asset management
+- 🔲 Advanced animations
 
 ### Phase 3: Rendering
 - 🔲 Remotion render integration

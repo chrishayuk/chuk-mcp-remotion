@@ -1,0 +1,117 @@
+import React from 'react';
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
+
+interface ThreeColumnLayoutProps {
+  left?: React.ReactNode;
+  center?: React.ReactNode;
+  right?: React.ReactNode;
+  startFrame: number;
+  durationInFrames: number;
+}
+
+export const ThreeColumnLayout: React.FC<ThreeColumnLayoutProps> = ({
+  left,
+  center,
+  right,
+  startFrame,
+  durationInFrames
+}) => {
+  const frame = useCurrentFrame();
+  const relativeFrame = frame - startFrame;
+
+  // Don't render if outside the time range
+  if (frame < startFrame || frame >= startFrame + durationInFrames) {
+    return null;
+  }
+
+  // Column width ratios (can be customized)
+  const leftWidth = [[ config.left_width or 33.33 ]];
+  const centerWidth = [[ config.center_width or 33.33 ]];
+  const rightWidth = [[ config.right_width or 33.33 ]];
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          [% if config.padding %]
+          top: [[ config.padding ]],
+          left: [[ config.padding ]],
+          right: [[ config.padding ]],
+          bottom: [[ config.padding ]],
+          [% else %]
+          top: 40,
+          left: 40,
+          right: 40,
+          bottom: 40,
+          [% endif %]
+          display: 'flex',
+          flexDirection: 'row',
+          gap: [[ config.gap or 20 ]],
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {/* Left Column */}
+        <div
+          style={{
+            flex: `0 0 calc(${leftWidth}% - [[ (config.gap or 20) * 2 / 3 ]]px)`,
+            display: 'flex',
+            flexDirection: 'column',
+            [% if config.border_width %]
+            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+            borderRadius: [[ config.border_radius or 8 ]],
+            [% endif %]
+            overflow: 'hidden',
+            position: 'relative',
+            [% if config.background %]
+            background: '[[ config.background ]]',
+            [% endif %]
+          }}
+        >
+          {left}
+        </div>
+
+        {/* Center Column */}
+        <div
+          style={{
+            flex: `0 0 calc(${centerWidth}% - [[ (config.gap or 20) * 2 / 3 ]]px)`,
+            display: 'flex',
+            flexDirection: 'column',
+            [% if config.border_width %]
+            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+            borderRadius: [[ config.border_radius or 8 ]],
+            [% endif %]
+            overflow: 'hidden',
+            position: 'relative',
+            [% if config.background %]
+            background: '[[ config.background ]]',
+            [% endif %]
+          }}
+        >
+          {center}
+        </div>
+
+        {/* Right Column */}
+        <div
+          style={{
+            flex: `0 0 calc(${rightWidth}% - [[ (config.gap or 20) * 2 / 3 ]]px)`,
+            display: 'flex',
+            flexDirection: 'column',
+            [% if config.border_width %]
+            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+            borderRadius: [[ config.border_radius or 8 ]],
+            [% endif %]
+            overflow: 'hidden',
+            position: 'relative',
+            [% if config.background %]
+            background: '[[ config.background ]]',
+            [% endif %]
+          }}
+        >
+          {right}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};

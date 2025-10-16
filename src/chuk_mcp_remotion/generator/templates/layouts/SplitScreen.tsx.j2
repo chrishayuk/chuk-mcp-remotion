@@ -1,0 +1,50 @@
+import React from 'react';
+import { AbsoluteFill } from 'remotion';
+
+interface SplitScreenProps {
+  leftPanel: React.ReactNode;
+  rightPanel: React.ReactNode;
+  dividerWidth?: number;
+  dividerColor?: string;
+  gap?: number;
+  orientation?: 'horizontal' | 'vertical';
+}
+
+export const SplitScreen: React.FC<SplitScreenProps> = ({
+  leftPanel,
+  rightPanel,
+  dividerWidth = [[ config.divider_width or 2 ]],
+  dividerColor = '[[ config.divider_color or colors.accent[0] ]]',
+  gap = [[ config.gap or 20 ]],
+  orientation = '[[ config.orientation or "horizontal" ]]',
+}) => {
+  const isHorizontal = orientation === 'horizontal';
+
+  return (
+    <AbsoluteFill
+      style={{
+        display: 'flex',
+        flexDirection: isHorizontal ? 'row' : 'column',
+        gap,
+        padding: [[ config.padding or 40 ]],
+        backgroundColor: '[[ config.background_color or colors.background.dark ]]',
+      }}
+    >
+      <div style={{ flex: 1 }}>
+        {leftPanel}
+      </div>
+
+      <div
+        style={{
+          width: isHorizontal ? dividerWidth : '100%',
+          height: isHorizontal ? '100%' : dividerWidth,
+          background: dividerColor,
+        }}
+      />
+
+      <div style={{ flex: 1 }}>
+        {rightPanel}
+      </div>
+    </AbsoluteFill>
+  );
+};

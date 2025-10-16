@@ -1,0 +1,117 @@
+import React from 'react';
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
+
+interface ThreeRowLayoutProps {
+  top?: React.ReactNode;
+  middle?: React.ReactNode;
+  bottom?: React.ReactNode;
+  startFrame: number;
+  durationInFrames: number;
+}
+
+export const ThreeRowLayout: React.FC<ThreeRowLayoutProps> = ({
+  top,
+  middle,
+  bottom,
+  startFrame,
+  durationInFrames
+}) => {
+  const frame = useCurrentFrame();
+  const relativeFrame = frame - startFrame;
+
+  // Don't render if outside the time range
+  if (frame < startFrame || frame >= startFrame + durationInFrames) {
+    return null;
+  }
+
+  // Row height ratios (can be customized)
+  const topHeight = [[ config.top_height or 33.33 ]];
+  const middleHeight = [[ config.middle_height or 33.33 ]];
+  const bottomHeight = [[ config.bottom_height or 33.33 ]];
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          [% if config.padding %]
+          top: [[ config.padding ]],
+          left: [[ config.padding ]],
+          right: [[ config.padding ]],
+          bottom: [[ config.padding ]],
+          [% else %]
+          top: 40,
+          left: 40,
+          right: 40,
+          bottom: 40,
+          [% endif %]
+          display: 'flex',
+          flexDirection: 'column',
+          gap: [[ config.gap or 20 ]],
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {/* Top Row */}
+        <div
+          style={{
+            flex: `0 0 calc(${topHeight}% - [[ (config.gap or 20) * 2 / 3 ]]px)`,
+            display: 'flex',
+            flexDirection: 'row',
+            [% if config.border_width %]
+            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+            borderRadius: [[ config.border_radius or 8 ]],
+            [% endif %]
+            overflow: 'hidden',
+            position: 'relative',
+            [% if config.background %]
+            background: '[[ config.background ]]',
+            [% endif %]
+          }}
+        >
+          {top}
+        </div>
+
+        {/* Middle Row */}
+        <div
+          style={{
+            flex: `0 0 calc(${middleHeight}% - [[ (config.gap or 20) * 2 / 3 ]]px)`,
+            display: 'flex',
+            flexDirection: 'row',
+            [% if config.border_width %]
+            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+            borderRadius: [[ config.border_radius or 8 ]],
+            [% endif %]
+            overflow: 'hidden',
+            position: 'relative',
+            [% if config.background %]
+            background: '[[ config.background ]]',
+            [% endif %]
+          }}
+        >
+          {middle}
+        </div>
+
+        {/* Bottom Row */}
+        <div
+          style={{
+            flex: `0 0 calc(${bottomHeight}% - [[ (config.gap or 20) * 2 / 3 ]]px)`,
+            display: 'flex',
+            flexDirection: 'row',
+            [% if config.border_width %]
+            border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+            borderRadius: [[ config.border_radius or 8 ]],
+            [% endif %]
+            overflow: 'hidden',
+            position: 'relative',
+            [% if config.background %]
+            background: '[[ config.background ]]',
+            [% endif %]
+          }}
+        >
+          {bottom}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};

@@ -366,6 +366,204 @@ class CompositionBuilder:
         self.components.append(component)
         return self
 
+    def add_over_the_shoulder_layout(
+        self,
+        host_view: Optional[ComponentInstance] = None,
+        screen_content: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        host_position: str = "left",
+        host_size: int = 35,
+        gap: int = 20,
+        border_width: int = 2,
+        padding: int = 40
+    ) -> 'CompositionBuilder':
+        """Add OverTheShoulderLayout to composition."""
+        component = ComponentInstance(
+            component_type="OverTheShoulderLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "host_position": host_position,
+                "host_size": host_size,
+                "gap": gap,
+                "border_width": border_width,
+                "padding": padding,
+                "hostView": host_view,
+                "screenContent": screen_content
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_dialogue_frame_layout(
+        self,
+        character_a: Optional[ComponentInstance] = None,
+        character_b: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        character_a_label: str = "",
+        character_b_label: str = "",
+        gap: int = 20,
+        border_width: int = 2,
+        padding: int = 40
+    ) -> 'CompositionBuilder':
+        """Add DialogueFrameLayout to composition."""
+        component = ComponentInstance(
+            component_type="DialogueFrameLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "character_a_label": character_a_label,
+                "character_b_label": character_b_label,
+                "gap": gap,
+                "border_width": border_width,
+                "padding": padding,
+                "characterA": character_a,
+                "characterB": character_b
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_stacked_reaction_layout(
+        self,
+        original_clip: Optional[ComponentInstance] = None,
+        reactor_face: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        clip_ratio: int = 65,
+        gap: int = 20,
+        show_labels: bool = True,
+        border_width: int = 2,
+        padding: int = 40
+    ) -> 'CompositionBuilder':
+        """Add StackedReactionLayout to composition."""
+        component = ComponentInstance(
+            component_type="StackedReactionLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "clip_ratio": clip_ratio,
+                "gap": gap,
+                "show_labels": show_labels,
+                "border_width": border_width,
+                "padding": padding,
+                "originalClip": original_clip,
+                "reactorFace": reactor_face
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_hud_style_layout(
+        self,
+        gameplay: Optional[ComponentInstance] = None,
+        webcam: Optional[ComponentInstance] = None,
+        chat_overlay: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        webcam_position: str = "top-left",
+        webcam_size: int = 15,
+        show_chat: bool = True,
+        chat_width: int = 25
+    ) -> 'CompositionBuilder':
+        """Add HUDStyleLayout to composition."""
+        component = ComponentInstance(
+            component_type="HUDStyleLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "webcam_position": webcam_position,
+                "webcam_size": webcam_size,
+                "show_chat": show_chat,
+                "chat_width": chat_width,
+                "gameplay": gameplay,
+                "webcam": webcam,
+                "chatOverlay": chat_overlay
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_performance_multi_cam_layout(
+        self,
+        front_cam: Optional[ComponentInstance] = None,
+        overhead_cam: Optional[ComponentInstance] = None,
+        hand_cam: Optional[ComponentInstance] = None,
+        detail_cam: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        labels: Optional[Dict[str, str]] = None,
+        gap: int = 20,
+        show_labels: bool = True,
+        border_width: int = 2,
+        padding: int = 40
+    ) -> 'CompositionBuilder':
+        """Add PerformanceMultiCamLayout to composition."""
+        if labels is None:
+            labels = {
+                "front": "FRONT VIEW",
+                "overhead": "OVERHEAD",
+                "hand": "HAND CAM",
+                "detail": "DETAIL"
+            }
+
+        component = ComponentInstance(
+            component_type="PerformanceMultiCamLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "labels": labels,
+                "gap": gap,
+                "show_labels": show_labels,
+                "border_width": border_width,
+                "padding": padding,
+                "frontCam": front_cam,
+                "overheadCam": overhead_cam,
+                "handCam": hand_cam,
+                "detailCam": detail_cam
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
+    def add_focus_strip_layout(
+        self,
+        host_strip: Optional[ComponentInstance] = None,
+        background_content: Optional[ComponentInstance] = None,
+        start_time: float = 0.0,
+        duration: float = 5.0,
+        strip_height: int = 30,
+        strip_position: str = "center",
+        background_blur: int = 5,
+        border_width: int = 2,
+        strip_shadow: bool = True
+    ) -> 'CompositionBuilder':
+        """Add FocusStripLayout to composition."""
+        component = ComponentInstance(
+            component_type="FocusStripLayout",
+            start_frame=self.seconds_to_frames(start_time),
+            duration_frames=self.seconds_to_frames(duration),
+            props={
+                "strip_height": strip_height,
+                "strip_position": strip_position,
+                "background_blur": background_blur,
+                "border_width": border_width,
+                "strip_shadow": strip_shadow,
+                "hostStrip": host_strip,
+                "backgroundContent": background_content
+            },
+            layer=5
+        )
+        self.components.append(component)
+        return self
+
     def add_split_screen(
         self,
         left_component: Optional[ComponentInstance] = None,
@@ -516,7 +714,13 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
             types.add(comp.component_type)
 
             # Check for nested children
-            if comp.component_type in ['Grid', 'Container', 'SplitScreen']:
+            layout_types = [
+                'Grid', 'Container', 'SplitScreen',
+                'OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout',
+                'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout'
+            ]
+
+            if comp.component_type in layout_types:
                 children = comp.props.get('children')
                 if isinstance(children, list):
                     for child in children:
@@ -531,6 +735,20 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
                     if isinstance(child, ComponentInstance):
                         collect_types(child)
 
+                # For specialized layouts
+                specialized_keys = [
+                    'hostView', 'screenContent',  # OverTheShoulder
+                    'characterA', 'characterB',  # DialogueFrame
+                    'originalClip', 'reactorFace',  # StackedReaction
+                    'gameplay', 'webcam', 'chatOverlay',  # HUDStyle
+                    'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCam
+                    'hostStrip', 'backgroundContent'  # FocusStrip
+                ]
+                for key in specialized_keys:
+                    child = comp.props.get(key)
+                    if isinstance(child, ComponentInstance):
+                        collect_types(child)
+
         for comp in components:
             collect_types(comp)
 
@@ -539,8 +757,14 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
     def _find_nested_children(self, components: List[ComponentInstance]) -> set:
         """Find all components that are children of layout components."""
         nested = set()
+        layout_types = [
+            'Grid', 'Container', 'SplitScreen',
+            'OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout',
+            'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout'
+        ]
+
         for comp in components:
-            if comp.component_type in ['Grid', 'Container', 'SplitScreen']:
+            if comp.component_type in layout_types:
                 # Get children from props
                 children = comp.props.get('children')
                 if isinstance(children, list):
@@ -555,6 +779,20 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
                     child = comp.props.get(key)
                     if isinstance(child, ComponentInstance):
                         nested.add(id(child))
+
+                # For specialized layouts
+                specialized_keys = [
+                    'hostView', 'screenContent',  # OverTheShoulder
+                    'characterA', 'characterB',  # DialogueFrame
+                    'originalClip', 'reactorFace',  # StackedReaction
+                    'gameplay', 'webcam', 'chatOverlay',  # HUDStyle
+                    'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCam
+                    'hostStrip', 'backgroundContent'  # FocusStrip
+                ]
+                for key in specialized_keys:
+                    child = comp.props.get(key)
+                    if isinstance(child, ComponentInstance):
+                        nested.add(id(child))
         return nested
 
     def _render_component_jsx(self, comp: ComponentInstance, indent: int = 0) -> str:
@@ -562,7 +800,12 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
         spaces = ' ' * indent
 
         # Check if this is a layout component with children
-        has_children = comp.component_type in ['Grid', 'Container', 'SplitScreen']
+        layout_types = [
+            'Grid', 'Container', 'SplitScreen',
+            'OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout',
+            'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout'
+        ]
+        has_children = comp.component_type in layout_types
 
         if has_children:
             return self._render_layout_component(comp, indent)
@@ -597,9 +840,19 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
         spaces = ' ' * indent
 
         # Format non-children props
+        # Exclude child component props from regular props
+        exclude_keys = [
+            'children', 'left', 'right', 'top', 'bottom',
+            'hostView', 'screenContent',  # OverTheShoulder
+            'characterA', 'characterB',  # DialogueFrame
+            'originalClip', 'reactorFace',  # StackedReaction
+            'gameplay', 'webcam', 'chatOverlay',  # HUDStyle
+            'frontCam', 'overheadCam', 'handCam', 'detailCam',  # PerformanceMultiCam
+            'hostStrip', 'backgroundContent'  # FocusStrip
+        ]
         props_lines = []
         for key, value in comp.props.items():
-            if key not in ['children', 'left', 'right', 'top', 'bottom'] and value is not None:
+            if key not in exclude_keys and value is not None:
                 props_lines.append(f"{spaces}  {key}={self._format_prop_value(value)}")
         props_str = "\n".join(props_lines) if props_lines else ""
 
@@ -722,6 +975,45 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
 {spaces}  }}
 {spaces}/>"""
 
+        # Handle specialized layouts (OverTheShoulder, DialogueFrame, etc.)
+        elif comp.component_type in ['OverTheShoulderLayout', 'DialogueFrameLayout', 'StackedReactionLayout', 'HUDStyleLayout', 'PerformanceMultiCamLayout', 'FocusStripLayout']:
+            # Map layout types to their prop keys
+            layout_prop_keys = {
+                'OverTheShoulderLayout': ['hostView', 'screenContent'],
+                'DialogueFrameLayout': ['characterA', 'characterB'],
+                'StackedReactionLayout': ['originalClip', 'reactorFace'],
+                'HUDStyleLayout': ['gameplay', 'webcam', 'chatOverlay'],
+                'PerformanceMultiCamLayout': ['frontCam', 'overheadCam', 'handCam', 'detailCam'],
+                'FocusStripLayout': ['hostStrip', 'backgroundContent']
+            }
+
+            prop_keys = layout_prop_keys.get(comp.component_type, [])
+            child_props = []
+
+            for key in prop_keys:
+                child = comp.props.get(key)
+                if isinstance(child, ComponentInstance):
+                    child_jsx = self._render_component_jsx(child, indent + 4)
+                    child_props.append(f"{spaces}  {key}={{\n{child_jsx}\n{spaces}  }}")
+                elif child is None:
+                    child_props.append(f"{spaces}  {key}={{undefined}}")
+
+            children_str = "\n".join(child_props)
+
+            if props_str:
+                return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{props_str}
+{children_str}
+{spaces}/>"""
+            else:
+                return f"""{spaces}<{comp.component_type}
+{spaces}  startFrame={{{comp.start_frame}}}
+{spaces}  durationInFrames={{{comp.duration_frames}}}
+{children_str}
+{spaces}/>"""
+
         # Fallback
         return self._render_simple_component(comp, indent)
 
@@ -733,6 +1025,14 @@ export const VideoComposition: React.FC<VideoCompositionProps> = ({{ theme }}) =
             return "{" + str(value).lower() + "}"
         elif isinstance(value, (int, float)):
             return "{" + str(value) + "}"
+        elif isinstance(value, dict):
+            # Format dict as JS object literal
+            import json
+            return "{" + json.dumps(value) + "}"
+        elif isinstance(value, list):
+            # Format list as JS array
+            import json
+            return "{" + json.dumps(value) + "}"
         else:
             return f'{{{value}}}'
 

@@ -1,0 +1,79 @@
+import React from 'react';
+import { AbsoluteFill, useCurrentFrame } from 'remotion';
+
+interface ThreeByThreeGridProps {
+  children: React.ReactNode[];
+  startFrame: number;
+  durationInFrames: number;
+}
+
+export const ThreeByThreeGrid: React.FC<ThreeByThreeGridProps> = ({
+  children,
+  startFrame,
+  durationInFrames
+}) => {
+  const frame = useCurrentFrame();
+  const relativeFrame = frame - startFrame;
+
+  // Don't render if outside the time range
+  if (frame < startFrame || frame >= startFrame + durationInFrames) {
+    return null;
+  }
+
+  // Ensure we have exactly 9 children (or less)
+  const gridChildren = Array.isArray(children) ? children.slice(0, 9) : [children];
+
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          [% if config.padding %]
+          top: [[ config.padding ]],
+          left: [[ config.padding ]],
+          right: [[ config.padding ]],
+          bottom: [[ config.padding ]],
+          [% else %]
+          top: 40,
+          left: 40,
+          right: 40,
+          bottom: 40,
+          [% endif %]
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gridTemplateRows: '1fr 1fr 1fr',
+          gap: [[ config.gap or 20 ]],
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {gridChildren.map((child, idx) => (
+          <div
+            key={idx}
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              position: 'relative',
+              [% if config.border_width %]
+              border: '[[ config.border_width or 2 ]]px solid [[ config.border_color or colors.text.muted ]]',
+              borderRadius: [[ config.border_radius or 8 ]],
+              [% endif %]
+              [% if config.background %]
+              background: '[[ config.background ]]',
+              [% endif %]
+              [% if config.cell_background %]
+              background: '[[ config.cell_background ]]',
+              [% endif %]
+            }}
+          >
+            {child}
+          </div>
+        ))}
+      </div>
+    </AbsoluteFill>
+  );
+};

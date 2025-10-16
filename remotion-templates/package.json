@@ -1,0 +1,26 @@
+{
+  "name": "[[ project_name ]]",
+  "version": "1.0.0",
+  "description": "Remotion video project",
+  "scripts": {
+    "start": "remotion preview",
+    "build": "remotion render",
+    "upgrade": "remotion upgrade",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "prettier": "^3.0.0",
+    "eslint": "^8.0.0"
+  }
+}

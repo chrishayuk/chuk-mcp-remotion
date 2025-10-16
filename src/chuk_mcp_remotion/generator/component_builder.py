@@ -19,12 +19,12 @@ class ComponentBuilder:
     def __init__(self):
         """Initialize the component builder with Jinja2 environment."""
         # Get template directory
-        template_dir = Path(__file__).parent / "templates"
-        template_dir.mkdir(exist_ok=True)
+        self.template_dir = Path(__file__).parent / "templates"
+        self.template_dir.mkdir(exist_ok=True)
 
         # Create Jinja2 environment with custom delimiters to avoid JSX conflicts
         self.env = Environment(
-            loader=FileSystemLoader(str(template_dir)),
+            loader=FileSystemLoader(str(self.template_dir)),
             trim_blocks=True,
             lstrip_blocks=True,
             autoescape=False,  # Don't escape TSX code
@@ -39,6 +39,9 @@ class ComponentBuilder:
         self.env.filters['to_camel_case'] = self._to_camel_case
         self.env.filters['to_pascal_case'] = self._to_pascal_case
 
+        # Template categories for organized template discovery
+        self.template_categories = ['layouts', 'overlays', 'effects', 'content']
+
     def _to_camel_case(self, snake_str: str) -> str:
         """Convert snake_case to camelCase."""
         components = snake_str.split('_')
@@ -47,6 +50,32 @@ class ComponentBuilder:
     def _to_pascal_case(self, snake_str: str) -> str:
         """Convert snake_case to PascalCase."""
         return ''.join(x.title() for x in snake_str.split('_'))
+
+    def _find_template(self, component_name: str) -> str:
+        """
+        Find template file in organized subdirectories.
+
+        Args:
+            component_name: Name of the component (e.g., "LowerThird")
+
+        Returns:
+            Template path relative to template directory
+        """
+        template_filename = f"{component_name}.tsx.j2"
+
+        # First try root directory for backwards compatibility
+        root_template = self.template_dir / template_filename
+        if root_template.exists():
+            return template_filename
+
+        # Then search in organized subdirectories
+        for category in self.template_categories:
+            category_template = self.template_dir / category / template_filename
+            if category_template.exists():
+                return f"{category}/{template_filename}"
+
+        # If not found, raise error
+        raise ValueError(f"Template {template_filename} not found in any category")
 
     def build_component(
         self,
@@ -68,10 +97,10 @@ class ComponentBuilder:
         # Get theme
         theme = YOUTUBE_THEMES.get(theme_name, YOUTUBE_THEMES["tech"])
 
-        # Get template
-        template_name = f"{component_name}.tsx.j2"
+        # Find and get template
         try:
-            template = self.env.get_template(template_name)
+            template_path = self._find_template(component_name)
+            template = self.env.get_template(template_path)
         except Exception as e:
             raise ValueError(f"Template not found for {component_name}: {e}")
 
